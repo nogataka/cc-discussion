@@ -36,9 +36,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Paths
+# Paths - Support both development and packaged installation
 ROOT_DIR = Path(__file__).parent.parent
 UI_DIST_DIR = ROOT_DIR / "frontend" / "dist"
+
+# Alternative locations for packaged installation
+if not UI_DIST_DIR.exists():
+    # Try relative to the backend package
+    UI_DIST_DIR = Path(__file__).parent / ".." / "frontend" / "dist"
+    if not UI_DIST_DIR.exists():
+        UI_DIST_DIR = None  # No frontend dist available
 
 
 @asynccontextmanager
@@ -98,8 +105,31 @@ async def health_check():
     return {"status": "healthy"}
 
 
+# SDK availability check
+@app.get("/api/config/available-agents")
+async def get_available_agents():
+    """Check which agent SDKs are installed and available."""
+    available = []
+
+    # Check ClaudeCode SDK
+    try:
+        from claude_agent_sdk import ClaudeSDKClient
+        available.append("claude")
+    except ImportError:
+        pass
+
+    # Check Codex SDK
+    try:
+        from codex_sdk import Codex
+        available.append("codex")
+    except ImportError:
+        pass
+
+    return {"available_agents": available}
+
+
 # Static file serving (Production)
-if UI_DIST_DIR.exists():
+if UI_DIST_DIR and UI_DIST_DIR.exists():
     app.mount("/assets", StaticFiles(directory=UI_DIST_DIR / "assets"), name="assets")
 
     @app.get("/")

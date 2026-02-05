@@ -30,7 +30,24 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
+# Lazy import for ClaudeSDK - check availability at runtime
+ClaudeSDKClient = None
+ClaudeAgentOptions = None
+
+def _ensure_claude_sdk():
+    """Ensure ClaudeSDK is available, exit with error if not."""
+    global ClaudeSDKClient, ClaudeAgentOptions
+    if ClaudeSDKClient is None:
+        try:
+            from claude_agent_sdk import ClaudeSDKClient as _Client, ClaudeAgentOptions as _Options
+            ClaudeSDKClient = _Client
+            ClaudeAgentOptions = _Options
+        except ImportError:
+            print(json.dumps({
+                "type": "error",
+                "content": "ClaudeCode SDK is not installed. Please run: pip install claude-agent-sdk"
+            }), flush=True)
+            sys.exit(1)
 
 # Import meeting prompts - handle both module and standalone execution
 try:
@@ -234,6 +251,9 @@ async def run_participant_agent(
         language: Language for the discussion (ja or en)
         is_facilitator: Whether this participant is the facilitator
     """
+    # Ensure SDK is available
+    _ensure_claude_sdk()
+
     logger.info(f"Starting participant agent: {participant_name} (mode={mode}, lang={language}, facilitator={is_facilitator})")
 
     system_prompt = build_system_prompt(

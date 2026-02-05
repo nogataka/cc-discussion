@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, History, Loader2, ChevronDown, ChevronRight, ChevronLeft, MessageSquare, Calendar } from 'lucide-react'
 import {
@@ -108,6 +108,33 @@ export function CreateRoomModal({
     enabled: !!selectedProject && expandedAgentType === 'codex',
   })
 
+  // Fetch available agent types
+  const { data: availableAgents } = useQuery({
+    queryKey: ['availableAgents'],
+    queryFn: api.getAvailableAgents,
+    staleTime: Infinity, // SDK availability doesn't change during session
+  })
+
+  // Get default agent type based on availability
+  const defaultAgentType: AgentType = useMemo(() => {
+    if (availableAgents?.includes('claude')) return 'claude'
+    if (availableAgents?.includes('codex')) return 'codex'
+    return 'claude' // fallback
+  }, [availableAgents])
+
+  // Update participants' agent type when available agents change
+  useEffect(() => {
+    if (availableAgents && availableAgents.length > 0) {
+      setParticipants(prev => prev.map(p => {
+        // If current agent type is not available, switch to default
+        if (p.agent_type && !availableAgents.includes(p.agent_type)) {
+          return { ...p, agent_type: defaultAgentType }
+        }
+        return p
+      }))
+    }
+  }, [availableAgents, defaultAgentType])
+
   // Sort ClaudeCode projects by last modified (most recent first)
   const sortedProjects = useMemo(() => {
     if (!projects) return []
@@ -166,8 +193,8 @@ export function CreateRoomModal({
     setCustomMeetingDescription('')
     setLanguage('ja')
     setParticipants([
-      { id: generateId(), name: 'エージェント A', role: '', color: COLORS[0], agent_type: 'claude' },
-      { id: generateId(), name: 'エージェント B', role: '', color: COLORS[1], agent_type: 'claude' },
+      { id: generateId(), name: 'エージェント A', role: '', color: COLORS[0], agent_type: defaultAgentType },
+      { id: generateId(), name: 'エージェント B', role: '', color: COLORS[1], agent_type: defaultAgentType },
     ])
     setExpandedParticipant(null)
     setSelectedProject(null)
@@ -183,7 +210,7 @@ export function CreateRoomModal({
         name: `エージェント ${String.fromCharCode(65 + prev.length)}`,
         role: '',
         color: COLORS[prev.length % COLORS.length],
-        agent_type: 'claude',
+        agent_type: defaultAgentType,
       },
     ])
   }
@@ -199,7 +226,7 @@ export function CreateRoomModal({
         role: 'ファシリテーター',
         color: '#9333ea',  // Purple
         is_facilitator: true,
-        agent_type: 'claude',
+        agent_type: defaultAgentType,
       },
       ...prev,
     ])
@@ -469,44 +496,53 @@ export function CreateRoomModal({
                         <div>
                           <Label>エージェントタイプ</Label>
                           <div className="flex gap-2 mt-1">
-                            <label className={`flex items-center gap-2 p-2 px-3 rounded-md border cursor-pointer transition-colors text-sm ${
-                              participant.agent_type === 'claude' ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'
-                            }`}>
-                              <input
-                                type="radio"
-                                name={`agent-type-${participant.id}`}
-                                value="claude"
-                                checked={participant.agent_type === 'claude'}
-                                onChange={() => {
-                                  setParticipants(prev => {
-                                    const updated = [...prev]
-                                    updated[index] = { ...updated[index], agent_type: 'claude' }
-                                    return updated
-                                  })
-                                }}
-                                className="sr-only"
-                              />
-                              Claude
-                            </label>
-                            <label className={`flex items-center gap-2 p-2 px-3 rounded-md border cursor-pointer transition-colors text-sm ${
-                              participant.agent_type === 'codex' ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'
-                            }`}>
-                              <input
-                                type="radio"
-                                name={`agent-type-${participant.id}`}
-                                value="codex"
-                                checked={participant.agent_type === 'codex'}
-                                onChange={() => {
-                                  setParticipants(prev => {
-                                    const updated = [...prev]
-                                    updated[index] = { ...updated[index], agent_type: 'codex' }
-                                    return updated
-                                  })
-                                }}
-                                className="sr-only"
-                              />
-                              Codex
-                            </label>
+                            {availableAgents?.includes('claude') && (
+                              <label className={`flex items-center gap-2 p-2 px-3 rounded-md border cursor-pointer transition-colors text-sm ${
+                                participant.agent_type === 'claude' ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'
+                              }`}>
+                                <input
+                                  type="radio"
+                                  name={`agent-type-${participant.id}`}
+                                  value="claude"
+                                  checked={participant.agent_type === 'claude'}
+                                  onChange={() => {
+                                    setParticipants(prev => {
+                                      const updated = [...prev]
+                                      updated[index] = { ...updated[index], agent_type: 'claude' }
+                                      return updated
+                                    })
+                                  }}
+                                  className="sr-only"
+                                />
+                                Claude
+                              </label>
+                            )}
+                            {availableAgents?.includes('codex') && (
+                              <label className={`flex items-center gap-2 p-2 px-3 rounded-md border cursor-pointer transition-colors text-sm ${
+                                participant.agent_type === 'codex' ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'
+                              }`}>
+                                <input
+                                  type="radio"
+                                  name={`agent-type-${participant.id}`}
+                                  value="codex"
+                                  checked={participant.agent_type === 'codex'}
+                                  onChange={() => {
+                                    setParticipants(prev => {
+                                      const updated = [...prev]
+                                      updated[index] = { ...updated[index], agent_type: 'codex' }
+                                      return updated
+                                    })
+                                  }}
+                                  className="sr-only"
+                                />
+                                Codex
+                              </label>
+                            )}
+                            {(!availableAgents || availableAgents.length === 0) && (
+                              <span className="text-sm text-muted-foreground">
+                                エージェントSDKがインストールされていません
+                              </span>
+                            )}
                           </div>
                         </div>
 
