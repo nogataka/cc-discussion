@@ -68,8 +68,8 @@ export function CreateRoomModal({
   const [customMeetingDescription, setCustomMeetingDescription] = useState('')
   const [language, setLanguage] = useState<'ja' | 'en'>('ja')
   const [participants, setParticipants] = useState<ParticipantForm[]>([
-    { id: generateId(), name: 'Claude A', role: '', color: COLORS[0], agent_type: 'claude' },
-    { id: generateId(), name: 'Claude B', role: '', color: COLORS[1], agent_type: 'claude' },
+    { id: generateId(), name: 'エージェント A', role: '', color: COLORS[0], agent_type: 'claude' },
+    { id: generateId(), name: 'エージェント B', role: '', color: COLORS[1], agent_type: 'claude' },
   ])
   const [expandedParticipant, setExpandedParticipant] = useState<number | null>(null)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
@@ -166,8 +166,8 @@ export function CreateRoomModal({
     setCustomMeetingDescription('')
     setLanguage('ja')
     setParticipants([
-      { id: generateId(), name: 'Claude A', role: '', color: COLORS[0], agent_type: 'claude' },
-      { id: generateId(), name: 'Claude B', role: '', color: COLORS[1], agent_type: 'claude' },
+      { id: generateId(), name: 'エージェント A', role: '', color: COLORS[0], agent_type: 'claude' },
+      { id: generateId(), name: 'エージェント B', role: '', color: COLORS[1], agent_type: 'claude' },
     ])
     setExpandedParticipant(null)
     setSelectedProject(null)
@@ -180,7 +180,7 @@ export function CreateRoomModal({
       ...prev,
       {
         id: generateId(),
-        name: `Claude ${String.fromCharCode(65 + prev.length)}`,
+        name: `エージェント ${String.fromCharCode(65 + prev.length)}`,
         role: '',
         color: COLORS[prev.length % COLORS.length],
         agent_type: 'claude',
@@ -236,7 +236,7 @@ export function CreateRoomModal({
         context_project_dir: project.id,
         context_session_id: session.id,
         selectedProjectName: project.name,
-        selectedSessionPrompt: session.first_user_message || '(No prompt)',
+        selectedSessionPrompt: session.first_user_message || '(プロンプトなし)',
       }
       return updated
     })
@@ -286,35 +286,35 @@ export function CreateRoomModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Discussion Room</DialogTitle>
+          <DialogTitle>ディスカッションルーム作成</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Room Details */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="roomName">Room Name *</Label>
+              <Label htmlFor="roomName">ルーム名 *</Label>
               <Input
                 id="roomName"
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
-                placeholder="e.g., Architecture Review"
+                placeholder="例: アーキテクチャレビュー"
               />
             </div>
 
             <div>
-              <Label htmlFor="topic">Discussion Topic</Label>
+              <Label htmlFor="topic">ディスカッショントピック</Label>
               <Textarea
                 id="topic"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="What should the Claudes discuss?"
+                placeholder="Claudeたちが議論する内容を入力..."
                 rows={3}
               />
             </div>
 
             <div>
-              <Label htmlFor="maxTurns">Max Turns</Label>
+              <Label htmlFor="maxTurns">最大ターン数</Label>
               <Input
                 id="maxTurns"
                 type="number"
@@ -514,7 +514,7 @@ export function CreateRoomModal({
                         <div>
                           <Label className="flex items-center gap-1">
                             <History className="w-4 h-4" />
-                            {participant.agent_type === 'codex' ? 'Codex Context' : 'ClaudeCode Context'}
+                            {participant.agent_type === 'codex' ? 'Codex コンテキスト' : 'ClaudeCode コンテキスト'}
                           </Label>
 
                           {participant.context_session_id ? (
@@ -554,7 +554,7 @@ export function CreateRoomModal({
                               ) : (
                                 <ChevronRight className="w-4 h-4 mr-1" />
                               )}
-                              Select Context
+                              コンテキストを選択
                             </Button>
                           )}
 
@@ -588,7 +588,7 @@ export function CreateRoomModal({
                                               <Calendar className="w-3 h-3" />
                                               {new Date(project.last_modified_at).toLocaleDateString()}
                                             </span>
-                                            <span>{project.session_count} sessions</span>
+                                            <span>{project.session_count} セッション</span>
                                           </div>
                                         </button>
                                       ))}
@@ -677,7 +677,7 @@ export function CreateRoomModal({
                                                       context_project_dir: project.id,
                                                       context_session_id: session.id,
                                                       selectedProjectName: project.name,
-                                                      selectedSessionPrompt: session.first_user_message || '(No prompt)',
+                                                      selectedSessionPrompt: session.first_user_message || '(プロンプトなし)',
                                                     }
                                                     return updated
                                                   })
@@ -690,12 +690,12 @@ export function CreateRoomModal({
                                                 <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                                                 <div className="flex-1 min-w-0">
                                                   <div className="line-clamp-2 font-medium">
-                                                    {session.first_user_message || '(No prompt)'}
+                                                    {session.first_user_message || '(プロンプトなし)'}
                                                   </div>
                                                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
                                                     <span className="flex items-center gap-1">
                                                       <MessageSquare className="w-3 h-3" />
-                                                      {session.message_count} messages
+                                                      {session.message_count} 件
                                                     </span>
                                                     <span className="flex items-center gap-1">
                                                       <Calendar className="w-3 h-3" />
@@ -738,12 +738,12 @@ export function CreateRoomModal({
                                                 <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                                                 <div className="flex-1 min-w-0">
                                                   <div className="line-clamp-2 font-medium">
-                                                    {session.first_user_message || '(No prompt)'}
+                                                    {session.first_user_message || '(プロンプトなし)'}
                                                   </div>
                                                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
                                                     <span className="flex items-center gap-1">
                                                       <MessageSquare className="w-3 h-3" />
-                                                      {session.message_count} messages
+                                                      {session.message_count} 件
                                                     </span>
                                                     <span className="flex items-center gap-1">
                                                       <Calendar className="w-3 h-3" />
@@ -785,7 +785,7 @@ export function CreateRoomModal({
           {/* Actions */}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose}>
-              Cancel
+              キャンセル
             </Button>
             <Button
               onClick={handleSubmit}
@@ -798,10 +798,10 @@ export function CreateRoomModal({
               {createMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
+                  作成中...
                 </>
               ) : (
-                'Create Room'
+                '作成'
               )}
             </Button>
           </div>
