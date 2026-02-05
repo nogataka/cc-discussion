@@ -195,7 +195,14 @@ class DiscussionMessage(Base):
 
 
 # Database setup
-DATABASE_PATH = Path(__file__).parent.parent.parent / "discussion.db"
+def _get_database_path() -> Path:
+    """Get the database file path (~/.cc-discussion/discussion.db)."""
+    data_dir = Path.home() / ".cc-discussion"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    return data_dir / "discussion.db"
+
+
+DATABASE_PATH = _get_database_path()
 
 
 def get_database_url() -> str:
