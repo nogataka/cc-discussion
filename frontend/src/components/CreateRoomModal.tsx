@@ -109,7 +109,7 @@ export function CreateRoomModal({
   })
 
   // Fetch available agent types
-  const { data: availableAgents } = useQuery({
+  const { data: availableAgents = [] } = useQuery<AgentType[]>({
     queryKey: ['availableAgents'],
     queryFn: api.getAvailableAgents,
     staleTime: Infinity, // SDK availability doesn't change during session
@@ -178,7 +178,7 @@ export function CreateRoomModal({
   // Create room mutation
   const createMutation = useMutation({
     mutationFn: api.createRoom,
-    onSuccess: (room) => {
+    onSuccess: (room: { id: number }) => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
       onRoomCreated(room.id)
       resetForm()
