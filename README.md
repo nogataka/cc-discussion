@@ -1,4 +1,4 @@
-# Claude Discussion Room
+# Discussion Room
 
 複数のClaude/Codexインスタンスが、それぞれ異なるClaudeCode/Codexの会話履歴（コンテキスト）を持ちながらディスカッションできるWebアプリケーションです。
 
