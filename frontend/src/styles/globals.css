@@ -1,0 +1,1294 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Enable class-based dark mode in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================================
+   Theme: Twitter (Default)
+   Clean, modern blue design
+   ============================================================================ */
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(0.9784 0.0011 197.1387);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.6723 0.1606 244.9955);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.6188 0.2376 25.7658);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.9317 0.0118 231.6594);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.6723 0.1606 244.9955);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.6723 0.1606 244.9955);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Shadow variables */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Log level colors (kept for Terminal/Debug components) */
+  --color-log-error: #ef4444;
+  --color-log-warning: #f59e0b;
+  --color-log-info: #3b82f6;
+  --color-log-debug: #6b7280;
+  --color-log-success: #22c55e;
+
+  /* Status colors for Kanban */
+  --color-status-pending: oklch(0.9392 0.0166 250.8453);
+  --color-status-progress: oklch(0.85 0.08 245);
+  --color-status-done: oklch(0.85 0.08 245);
+
+  /* Font stacks */
+  --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark {
+  --background: oklch(0.08 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.16 0.005 250);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.16 0.005 250);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.6692 0.1607 245.0110);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.30 0 0);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.6692 0.1607 245.0110);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* Shadow variables - dark mode */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+
+  /* Log level colors for dark mode */
+  --color-log-error: #f87171;
+  --color-log-warning: #fbbf24;
+  --color-log-info: #60a5fa;
+  --color-log-debug: #9ca3af;
+  --color-log-success: #4ade80;
+
+  /* Status colors for Kanban - dark mode */
+  --color-status-pending: oklch(0.25 0.02 250);
+  --color-status-progress: oklch(0.25 0.05 245);
+  --color-status-done: oklch(0.25 0.05 245);
+}
+
+/* ============================================================================
+   Theme: Claude
+   Warm beige/cream tones with orange primary
+   ============================================================================ */
+
+.theme-claude {
+  --radius: 0.5rem;
+  --background: oklch(0.9818 0.0054 95.0986);
+  --foreground: oklch(0.3438 0.0269 95.7226);
+  --card: oklch(0.9650 0.0080 90);
+  --card-foreground: oklch(0.3438 0.0269 95.7226);
+  --popover: oklch(0.9818 0.0054 95.0986);
+  --popover-foreground: oklch(0.3438 0.0269 95.7226);
+  --primary: oklch(0.6171 0.1375 39.0427);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.9400 0.0120 85);
+  --secondary-foreground: oklch(0.3438 0.0269 95.7226);
+  --muted: oklch(0.9300 0.0100 90);
+  --muted-foreground: oklch(0.5500 0.0200 95);
+  --accent: oklch(0.9200 0.0150 80);
+  --accent-foreground: oklch(0.3438 0.0269 95.7226);
+  --destructive: oklch(0.6188 0.2376 25.7658);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.8900 0.0180 85);
+  --input: oklch(0.9500 0.0080 90);
+  --ring: oklch(0.6171 0.1375 39.0427);
+  --chart-1: oklch(0.6171 0.1375 39.0427);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.9700 0.0070 92);
+  --sidebar-foreground: oklch(0.3438 0.0269 95.7226);
+  --sidebar-primary: oklch(0.6171 0.1375 39.0427);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.9200 0.0150 80);
+  --sidebar-accent-foreground: oklch(0.3438 0.0269 95.7226);
+  --sidebar-border: oklch(0.8900 0.0180 85);
+  --sidebar-ring: oklch(0.6171 0.1375 39.0427);
+
+  /* Shadow variables - softer for Claude theme */
+  --shadow-sm: 0 1px 2px 0 rgb(139 115 85 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(139 115 85 / 0.08), 0 1px 2px -1px rgb(139 115 85 / 0.06);
+  --shadow-md: 0 4px 6px -1px rgb(139 115 85 / 0.08), 0 2px 4px -2px rgb(139 115 85 / 0.06);
+  --shadow-lg: 0 10px 15px -3px rgb(139 115 85 / 0.08), 0 4px 6px -4px rgb(139 115 85 / 0.06);
+
+  /* Log level colors */
+  --color-log-error: #dc6b52;
+  --color-log-warning: #d9a74a;
+  --color-log-info: #6b9dc4;
+  --color-log-debug: #8b8578;
+  --color-log-success: #6b9e6b;
+
+  /* Status colors for Kanban */
+  --color-status-pending: oklch(0.9200 0.0300 80);
+  --color-status-progress: oklch(0.8800 0.0500 60);
+  --color-status-done: oklch(0.8800 0.0500 140);
+
+  /* Font stacks - system fonts for Claude theme */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace;
+}
+
+.theme-claude.dark {
+  --background: oklch(0.2679 0.0036 106.6427);
+  --foreground: oklch(0.8074 0.0142 93.0137);
+  --card: oklch(0.3200 0.0050 100);
+  --card-foreground: oklch(0.8074 0.0142 93.0137);
+  --popover: oklch(0.3200 0.0050 100);
+  --popover-foreground: oklch(0.8074 0.0142 93.0137);
+  --primary: oklch(0.6800 0.1500 39);
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.3500 0.0080 100);
+  --secondary-foreground: oklch(0.8074 0.0142 93.0137);
+  --muted: oklch(0.3800 0.0060 100);
+  --muted-foreground: oklch(0.6500 0.0120 93);
+  --accent: oklch(0.4000 0.0100 90);
+  --accent-foreground: oklch(0.8074 0.0142 93.0137);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.4200 0.0080 95);
+  --input: oklch(0.3500 0.0050 100);
+  --ring: oklch(0.6800 0.1500 39);
+  --chart-1: oklch(0.6800 0.1500 39);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.2900 0.0040 105);
+  --sidebar-foreground: oklch(0.8074 0.0142 93.0137);
+  --sidebar-primary: oklch(0.6800 0.1500 39);
+  --sidebar-primary-foreground: oklch(0.15 0 0);
+  --sidebar-accent: oklch(0.3800 0.0080 95);
+  --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
+  --sidebar-border: oklch(0.4000 0.0060 100);
+  --sidebar-ring: oklch(0.6800 0.1500 39);
+
+  /* Shadow variables - dark mode */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35), 0 1px 2px -1px rgb(0 0 0 / 0.25);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.25);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.35), 0 4px 6px -4px rgb(0 0 0 / 0.25);
+
+  /* Log level colors for dark mode */
+  --color-log-error: #e8877a;
+  --color-log-warning: #e5be6d;
+  --color-log-info: #8bb5d6;
+  --color-log-debug: #a8a49a;
+  --color-log-success: #8bb58b;
+
+  /* Status colors for Kanban - dark mode */
+  --color-status-pending: oklch(0.3500 0.0300 80);
+  --color-status-progress: oklch(0.4000 0.0500 60);
+  --color-status-done: oklch(0.4000 0.0500 140);
+}
+
+/* ============================================================================
+   Theme: Neo Brutalism
+   Bold colors, hard shadows, no border radius
+   ============================================================================ */
+
+.theme-neo-brutalism {
+  --radius: 0px;
+  --background: oklch(1.0000 0 0);
+  --foreground: oklch(0 0 0);
+  --card: oklch(0.9800 0.0150 95);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0.6489 0.2370 26.9728);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.9500 0.1500 100);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.9400 0.0100 90);
+  --muted-foreground: oklch(0.4000 0 0);
+  --accent: oklch(0.8800 0.1800 85);
+  --accent-foreground: oklch(0 0 0);
+  --destructive: oklch(0.6500 0.2500 25);
+  --destructive-foreground: oklch(0 0 0);
+  --border: oklch(0 0 0);
+  --input: oklch(1.0000 0 0);
+  --ring: oklch(0.6489 0.2370 26.9728);
+  --chart-1: oklch(0.6489 0.2370 26.9728);
+  --chart-2: oklch(0.8000 0.2000 130);
+  --chart-3: oklch(0.7000 0.2200 280);
+  --chart-4: oklch(0.8800 0.1800 85);
+  --chart-5: oklch(0.6500 0.2500 330);
+  --sidebar: oklch(0.9500 0.1500 100);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0.6489 0.2370 26.9728);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.8800 0.1800 85);
+  --sidebar-accent-foreground: oklch(0 0 0);
+  --sidebar-border: oklch(0 0 0);
+  --sidebar-ring: oklch(0.6489 0.2370 26.9728);
+
+  /* Shadow variables - hard shadows */
+  --shadow-sm: 2px 2px 0px rgb(0 0 0);
+  --shadow: 3px 3px 0px rgb(0 0 0);
+  --shadow-md: 4px 4px 0px rgb(0 0 0);
+  --shadow-lg: 6px 6px 0px rgb(0 0 0);
+
+  /* Log level colors */
+  --color-log-error: #ff0000;
+  --color-log-warning: #ffaa00;
+  --color-log-info: #0066ff;
+  --color-log-debug: #666666;
+  --color-log-success: #00cc00;
+
+  /* Status colors for Kanban */
+  --color-status-pending: oklch(0.9500 0.1500 100);
+  --color-status-progress: oklch(0.8200 0.1800 200);
+  --color-status-done: oklch(0.8000 0.2000 130);
+
+  /* Font stacks - DM Sans for Neo Brutalism */
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+}
+
+.theme-neo-brutalism.dark {
+  --background: oklch(0.1200 0 0);
+  --foreground: oklch(1.0000 0 0);
+  --card: oklch(0.1800 0.0080 280);
+  --card-foreground: oklch(1.0000 0 0);
+  --popover: oklch(0.1500 0 0);
+  --popover-foreground: oklch(1.0000 0 0);
+  --primary: oklch(0.7200 0.2500 27);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.4500 0.1200 100);
+  --secondary-foreground: oklch(1.0000 0 0);
+  --muted: oklch(0.2500 0.0050 0);
+  --muted-foreground: oklch(0.6500 0 0);
+  --accent: oklch(0.5500 0.1500 85);
+  --accent-foreground: oklch(0 0 0);
+  --destructive: oklch(0.6500 0.2500 25);
+  --destructive-foreground: oklch(0 0 0);
+  --border: oklch(0.7000 0 0);
+  --input: oklch(0.2000 0 0);
+  --ring: oklch(0.7200 0.2500 27);
+  --chart-1: oklch(0.7200 0.2500 27);
+  --chart-2: oklch(0.7500 0.1800 130);
+  --chart-3: oklch(0.6500 0.2000 280);
+  --chart-4: oklch(0.7000 0.1500 85);
+  --chart-5: oklch(0.6000 0.2200 330);
+  --sidebar: oklch(0.1500 0.0050 280);
+  --sidebar-foreground: oklch(1.0000 0 0);
+  --sidebar-primary: oklch(0.7200 0.2500 27);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.4500 0.1200 85);
+  --sidebar-accent-foreground: oklch(1.0000 0 0);
+  --sidebar-border: oklch(0.5000 0 0);
+  --sidebar-ring: oklch(0.7200 0.2500 27);
+
+  /* Shadow variables - hard shadows for dark mode */
+  --shadow-sm: 2px 2px 0px rgb(255 255 255 / 0.3);
+  --shadow: 3px 3px 0px rgb(255 255 255 / 0.3);
+  --shadow-md: 4px 4px 0px rgb(255 255 255 / 0.3);
+  --shadow-lg: 6px 6px 0px rgb(255 255 255 / 0.3);
+
+  /* Log level colors for dark mode */
+  --color-log-error: #ff4444;
+  --color-log-warning: #ffcc00;
+  --color-log-info: #4499ff;
+  --color-log-debug: #999999;
+  --color-log-success: #44dd44;
+
+  /* Status colors for Kanban - dark mode */
+  --color-status-pending: oklch(0.4500 0.1200 100);
+  --color-status-progress: oklch(0.4500 0.1500 200);
+  --color-status-done: oklch(0.4500 0.1500 130);
+}
+
+/* ============================================================================
+   Theme: Retro Arcade
+   Vibrant pink and teal with pixel-art inspired styling
+   ============================================================================ */
+
+.theme-retro-arcade {
+  --radius: 0.25rem;
+  --background: oklch(0.9735 0.0261 90.0953);
+  --foreground: oklch(0.3092 0.0518 219.6516);
+  --card: oklch(0.9306 0.0260 92.4020);
+  --card-foreground: oklch(0.3092 0.0518 219.6516);
+  --popover: oklch(0.9306 0.0260 92.4020);
+  --popover-foreground: oklch(0.3092 0.0518 219.6516);
+  --primary: oklch(0.5924 0.2025 355.8943);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: oklch(0.6437 0.1019 187.3840);
+  --secondary-foreground: oklch(1.0000 0 0);
+  --muted: oklch(0.6979 0.0159 196.7940);
+  --muted-foreground: oklch(0.3092 0.0518 219.6516);
+  --accent: oklch(0.5808 0.1732 39.5003);
+  --accent-foreground: oklch(1.0000 0 0);
+  --destructive: oklch(0.5863 0.2064 27.1172);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.6537 0.0197 205.2618);
+  --input: oklch(0.6537 0.0197 205.2618);
+  --ring: oklch(0.5924 0.2025 355.8943);
+  --chart-1: oklch(0.6149 0.1394 244.9273);
+  --chart-2: oklch(0.6437 0.1019 187.3840);
+  --chart-3: oklch(0.5924 0.2025 355.8943);
+  --chart-4: oklch(0.5808 0.1732 39.5003);
+  --chart-5: oklch(0.5863 0.2064 27.1172);
+  --sidebar: oklch(0.9735 0.0261 90.0953);
+  --sidebar-foreground: oklch(0.3092 0.0518 219.6516);
+  --sidebar-primary: oklch(0.5924 0.2025 355.8943);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.6437 0.1019 187.3840);
+  --sidebar-accent-foreground: oklch(1.0000 0 0);
+  --sidebar-border: oklch(0.6537 0.0197 205.2618);
+  --sidebar-ring: oklch(0.5924 0.2025 355.8943);
+
+  /* Shadow variables - retro arcade style */
+  --shadow-sm: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 1px 2px -1px hsl(196 83% 10% / 0.15);
+  --shadow: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 1px 2px -1px hsl(196 83% 10% / 0.15);
+  --shadow-md: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 2px 4px -1px hsl(196 83% 10% / 0.15);
+  --shadow-lg: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 4px 6px -1px hsl(196 83% 10% / 0.15);
+
+  /* Log level colors */
+  --color-log-error: #e8457c;
+  --color-log-warning: #d98c4f;
+  --color-log-info: #4eb8a5;
+  --color-log-debug: #6b8a8f;
+  --color-log-success: #6bbd6b;
+
+  /* Status colors for Kanban */
+  --color-status-pending: oklch(0.9306 0.0260 92.4020);
+  --color-status-progress: oklch(0.6437 0.1019 187.3840);
+  --color-status-done: oklch(0.5924 0.2025 355.8943);
+
+  /* Font stacks - Outfit for Retro Arcade */
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+}
+
+.theme-retro-arcade.dark {
+  --background: oklch(0.2673 0.0486 219.8169);
+  --foreground: oklch(0.6979 0.0159 196.7940);
+  --card: oklch(0.3092 0.0518 219.6516);
+  --card-foreground: oklch(0.6979 0.0159 196.7940);
+  --popover: oklch(0.3092 0.0518 219.6516);
+  --popover-foreground: oklch(0.6979 0.0159 196.7940);
+  --primary: oklch(0.5924 0.2025 355.8943);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: oklch(0.6437 0.1019 187.3840);
+  --secondary-foreground: oklch(1.0000 0 0);
+  --muted: oklch(0.5230 0.0283 219.1365);
+  --muted-foreground: oklch(0.6979 0.0159 196.7940);
+  --accent: oklch(0.5808 0.1732 39.5003);
+  --accent-foreground: oklch(1.0000 0 0);
+  --destructive: oklch(0.5863 0.2064 27.1172);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.5230 0.0283 219.1365);
+  --input: oklch(0.5230 0.0283 219.1365);
+  --ring: oklch(0.5924 0.2025 355.8943);
+  --chart-1: oklch(0.6149 0.1394 244.9273);
+  --chart-2: oklch(0.6437 0.1019 187.3840);
+  --chart-3: oklch(0.5924 0.2025 355.8943);
+  --chart-4: oklch(0.5808 0.1732 39.5003);
+  --chart-5: oklch(0.5863 0.2064 27.1172);
+  --sidebar: oklch(0.2673 0.0486 219.8169);
+  --sidebar-foreground: oklch(0.6979 0.0159 196.7940);
+  --sidebar-primary: oklch(0.5924 0.2025 355.8943);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.6437 0.1019 187.3840);
+  --sidebar-accent-foreground: oklch(1.0000 0 0);
+  --sidebar-border: oklch(0.5230 0.0283 219.1365);
+  --sidebar-ring: oklch(0.5924 0.2025 355.8943);
+
+  /* Shadow variables - retro arcade dark mode */
+  --shadow-sm: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 1px 2px -1px hsl(196 83% 10% / 0.15);
+  --shadow: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 1px 2px -1px hsl(196 83% 10% / 0.15);
+  --shadow-md: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 2px 4px -1px hsl(196 83% 10% / 0.15);
+  --shadow-lg: 2px 2px 4px 0px hsl(196 83% 10% / 0.15), 2px 4px 6px -1px hsl(196 83% 10% / 0.15);
+
+  /* Log level colors for dark mode */
+  --color-log-error: #f06b99;
+  --color-log-warning: #e8a870;
+  --color-log-info: #6ecfbd;
+  --color-log-debug: #8ba5aa;
+  --color-log-success: #8bd68b;
+
+  /* Status colors for Kanban - dark mode */
+  --color-status-pending: oklch(0.3092 0.0518 219.6516);
+  --color-status-progress: oklch(0.5230 0.0800 187);
+  --color-status-done: oklch(0.5000 0.1500 355);
+}
+
+/* ============================================================================
+   Theme: Aurora
+   Deep violet and luminous teal inspired by the northern lights
+   Created by Claude - a theme about light emerging from depth
+   ============================================================================ */
+
+.theme-aurora {
+  --radius: 0.5rem;
+  --background: oklch(0.9850 0.0080 285);
+  --foreground: oklch(0.2500 0.0400 285);
+  --card: oklch(0.9700 0.0120 285);
+  --card-foreground: oklch(0.2500 0.0400 285);
+  --popover: oklch(0.9800 0.0100 285);
+  --popover-foreground: oklch(0.2500 0.0400 285);
+  --primary: oklch(0.5500 0.2200 285);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: oklch(0.7000 0.1400 175);
+  --secondary-foreground: oklch(0.1500 0.0300 175);
+  --muted: oklch(0.9400 0.0150 285);
+  --muted-foreground: oklch(0.4500 0.0300 285);
+  --accent: oklch(0.7500 0.1500 170);
+  --accent-foreground: oklch(0.1500 0.0300 170);
+  --destructive: oklch(0.6000 0.2000 25);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.8800 0.0200 285);
+  --input: oklch(0.9200 0.0150 285);
+  --ring: oklch(0.5500 0.2200 285);
+  --chart-1: oklch(0.5500 0.2200 285);
+  --chart-2: oklch(0.7000 0.1400 175);
+  --chart-3: oklch(0.6500 0.1800 320);
+  --chart-4: oklch(0.7500 0.1500 170);
+  --chart-5: oklch(0.6000 0.2000 25);
+  --sidebar: oklch(0.9600 0.0150 285);
+  --sidebar-foreground: oklch(0.2500 0.0400 285);
+  --sidebar-primary: oklch(0.5500 0.2200 285);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.7000 0.1400 175);
+  --sidebar-accent-foreground: oklch(0.1500 0.0300 175);
+  --sidebar-border: oklch(0.8800 0.0200 285);
+  --sidebar-ring: oklch(0.5500 0.2200 285);
+
+  /* Shadow variables - soft violet-tinted shadows */
+  --shadow-sm: 0 1px 2px 0 oklch(0.3 0.05 285 / 0.08);
+  --shadow: 0 1px 3px 0 oklch(0.3 0.05 285 / 0.12), 0 1px 2px -1px oklch(0.3 0.05 285 / 0.08);
+  --shadow-md: 0 4px 6px -1px oklch(0.3 0.05 285 / 0.12), 0 2px 4px -2px oklch(0.3 0.05 285 / 0.08);
+  --shadow-lg: 0 10px 15px -3px oklch(0.3 0.05 285 / 0.12), 0 4px 6px -4px oklch(0.3 0.05 285 / 0.08);
+
+  /* Log level colors */
+  --color-log-error: #e879a0;
+  --color-log-warning: #d4a055;
+  --color-log-info: #8b5cf6;
+  --color-log-debug: #7c7c9a;
+  --color-log-success: #2dd4bf;
+
+  /* Status colors for Kanban */
+  --color-status-pending: oklch(0.9400 0.0150 285);
+  --color-status-progress: oklch(0.8500 0.0800 175);
+  --color-status-done: oklch(0.8000 0.1200 285);
+
+  /* Font stacks - Inter for Aurora's clean, readable feel */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.theme-aurora.dark {
+  --background: oklch(0.1600 0.0300 285);
+  --foreground: oklch(0.9000 0.0150 285);
+  --card: oklch(0.2000 0.0350 285);
+  --card-foreground: oklch(0.9000 0.0150 285);
+  --popover: oklch(0.1800 0.0320 285);
+  --popover-foreground: oklch(0.9000 0.0150 285);
+  --primary: oklch(0.6500 0.2400 285);
+  --primary-foreground: oklch(0.1000 0.0200 285);
+  --secondary: oklch(0.6500 0.1600 175);
+  --secondary-foreground: oklch(0.1000 0.0200 175);
+  --muted: oklch(0.2500 0.0280 285);
+  --muted-foreground: oklch(0.6500 0.0200 285);
+  --accent: oklch(0.6800 0.1700 170);
+  --accent-foreground: oklch(0.1000 0.0200 170);
+  --destructive: oklch(0.6500 0.2000 25);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.3200 0.0350 285);
+  --input: oklch(0.2200 0.0300 285);
+  --ring: oklch(0.6500 0.2400 285);
+  --chart-1: oklch(0.6500 0.2400 285);
+  --chart-2: oklch(0.6500 0.1600 175);
+  --chart-3: oklch(0.7000 0.2000 320);
+  --chart-4: oklch(0.6800 0.1700 170);
+  --chart-5: oklch(0.6500 0.2000 25);
+  --sidebar: oklch(0.1400 0.0280 285);
+  --sidebar-foreground: oklch(0.9000 0.0150 285);
+  --sidebar-primary: oklch(0.6500 0.2400 285);
+  --sidebar-primary-foreground: oklch(0.1000 0.0200 285);
+  --sidebar-accent: oklch(0.6500 0.1600 175);
+  --sidebar-accent-foreground: oklch(0.1000 0.0200 175);
+  --sidebar-border: oklch(0.3000 0.0300 285);
+  --sidebar-ring: oklch(0.6500 0.2400 285);
+
+  /* Shadow variables - deep glowing shadows */
+  --shadow-sm: 0 1px 2px 0 oklch(0.1 0.03 285 / 0.4);
+  --shadow: 0 1px 3px 0 oklch(0.1 0.03 285 / 0.5), 0 1px 2px -1px oklch(0.1 0.03 285 / 0.4);
+  --shadow-md: 0 4px 6px -1px oklch(0.1 0.03 285 / 0.5), 0 2px 4px -2px oklch(0.1 0.03 285 / 0.4);
+  --shadow-lg: 0 10px 15px -3px oklch(0.1 0.03 285 / 0.5), 0 4px 6px -4px oklch(0.1 0.03 285 / 0.4);
+
+  /* Log level colors for dark mode - more luminous */
+  --color-log-error: #f472b6;
+  --color-log-warning: #fbbf24;
+  --color-log-info: #a78bfa;
+  --color-log-debug: #a1a1aa;
+  --color-log-success: #5eead4;
+
+  /* Status colors for Kanban - dark mode */
+  --color-status-pending: oklch(0.2500 0.0280 285);
+  --color-status-progress: oklch(0.4000 0.1000 175);
+  --color-status-done: oklch(0.4500 0.1500 285);
+}
+
+/* ============================================================================
+   Theme: Business
+   Professional deep navy (#000e4e) and gray palette for corporate use
+   Designed for trust, readability, and modern depth with card shadows
+   ============================================================================ */
+
+.theme-business {
+  --radius: 0.5rem;
+  /* Concrete-like blue-gray background */
+  --background: oklch(0.9500 0.0080 265);
+  /* Deep navy foreground #000e4e */
+  --foreground: oklch(0.1700 0.0900 265);
+  /* White cards with shadow depth */
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.1700 0.0900 265);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.1700 0.0900 265);
+  /* Primary: Deep navy #000e4e */
+  --primary: oklch(0.1700 0.0900 265);
+  --primary-foreground: oklch(1.0000 0 0);
+  /* Secondary: Light gray */
+  --secondary: oklch(0.9500 0.0020 265);
+  --secondary-foreground: oklch(0.1700 0.0900 265);
+  /* Muted: Soft gray */
+  --muted: oklch(0.9300 0.0020 265);
+  --muted-foreground: oklch(0.4500 0.0100 265);
+  /* Accent: Medium gray (no teal) */
+  --accent: oklch(0.5500 0.0100 265);
+  --accent-foreground: oklch(1.0000 0 0);
+  --destructive: oklch(0.5800 0.2000 25);
+  --destructive-foreground: oklch(1.0000 0 0);
+  /* Border: Subtle gray */
+  --border: oklch(0.8800 0.0030 265);
+  --input: oklch(0.9300 0.0020 265);
+  --ring: oklch(0.1700 0.0900 265);
+  /* Chart colors: Navy-gray monochrome scale */
+  --chart-1: oklch(0.1700 0.0900 265);
+  --chart-2: oklch(0.3500 0.0600 265);
+  --chart-3: oklch(0.5000 0.0400 265);
+  --chart-4: oklch(0.6500 0.0200 265);
+  --chart-5: oklch(0.8000 0.0100 265);
+  --sidebar: oklch(0.9300 0.0100 265);
+  --sidebar-foreground: oklch(0.1700 0.0900 265);
+  --sidebar-primary: oklch(0.1700 0.0900 265);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.5500 0.0100 265);
+  --sidebar-accent-foreground: oklch(1.0000 0 0);
+  --sidebar-border: oklch(0.8800 0.0030 265);
+  --sidebar-ring: oklch(0.1700 0.0900 265);
+
+  /* Shadow variables - pronounced for card depth (2026 trend) */
+  --shadow-sm: 0 1px 3px 0 rgb(0 14 78 / 0.06), 0 1px 2px -1px rgb(0 14 78 / 0.04);
+  --shadow: 0 2px 8px 0 rgb(0 14 78 / 0.08), 0 1px 3px -1px rgb(0 14 78 / 0.06);
+  --shadow-md: 0 6px 16px -2px rgb(0 14 78 / 0.10), 0 3px 6px -3px rgb(0 14 78 / 0.08);
+  --shadow-lg: 0 12px 32px -4px rgb(0 14 78 / 0.12), 0 6px 12px -6px rgb(0 14 78 / 0.10);
+
+  /* Log level colors - professional muted tones */
+  --color-log-error: #dc2626;
+  --color-log-warning: #d97706;
+  --color-log-info: #000e4e;
+  --color-log-debug: #6b7280;
+  --color-log-success: #059669;
+
+  /* Status colors for Kanban - gray-navy scale */
+  --color-status-pending: oklch(0.9300 0.0030 265);
+  --color-status-progress: oklch(0.8500 0.0200 265);
+  --color-status-done: oklch(0.7500 0.0400 265);
+
+  /* Font stacks - system fonts for professional feel */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', SFMono-Regular, ui-monospace, Consolas, 'Liberation Mono', monospace;
+}
+
+.theme-business.dark {
+  /* Very dark navy background */
+  --background: oklch(0.1200 0.0400 265);
+  --foreground: oklch(0.9400 0.0050 265);
+  /* Dark navy cards with elevation */
+  --card: oklch(0.1600 0.0500 265);
+  --card-foreground: oklch(0.9400 0.0050 265);
+  --popover: oklch(0.1400 0.0450 265);
+  --popover-foreground: oklch(0.9400 0.0050 265);
+  /* Primary: Lighter navy for dark mode */
+  --primary: oklch(0.5500 0.1200 265);
+  --primary-foreground: oklch(0.9800 0 0);
+  /* Secondary: Dark gray */
+  --secondary: oklch(0.2200 0.0200 265);
+  --secondary-foreground: oklch(0.9400 0.0050 265);
+  /* Muted: Medium-dark gray */
+  --muted: oklch(0.2500 0.0150 265);
+  --muted-foreground: oklch(0.6000 0.0100 265);
+  /* Accent: Light gray */
+  --accent: oklch(0.6500 0.0100 265);
+  --accent-foreground: oklch(0.1200 0.0400 265);
+  --destructive: oklch(0.6500 0.2000 25);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.2800 0.0200 265);
+  --input: oklch(0.2200 0.0200 265);
+  --ring: oklch(0.5500 0.1200 265);
+  /* Chart colors: Navy-gray scale for dark mode */
+  --chart-1: oklch(0.5500 0.1200 265);
+  --chart-2: oklch(0.6500 0.0800 265);
+  --chart-3: oklch(0.7500 0.0400 265);
+  --chart-4: oklch(0.5000 0.0600 265);
+  --chart-5: oklch(0.4000 0.0400 265);
+  --sidebar: oklch(0.1000 0.0350 265);
+  --sidebar-foreground: oklch(0.9400 0.0050 265);
+  --sidebar-primary: oklch(0.5500 0.1200 265);
+  --sidebar-primary-foreground: oklch(0.9800 0 0);
+  --sidebar-accent: oklch(0.6500 0.0100 265);
+  --sidebar-accent-foreground: oklch(0.1200 0.0400 265);
+  --sidebar-border: oklch(0.2600 0.0180 265);
+  --sidebar-ring: oklch(0.5500 0.1200 265);
+
+  /* Shadow variables - dark mode with stronger depth */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow: 0 2px 8px 0 rgb(0 0 0 / 0.5), 0 1px 3px -1px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 6px 16px -2px rgb(0 0 0 / 0.6), 0 3px 6px -3px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 12px 32px -4px rgb(0 0 0 / 0.7), 0 6px 12px -6px rgb(0 0 0 / 0.6);
+
+  /* Log level colors - dark mode */
+  --color-log-error: #f87171;
+  --color-log-warning: #fbbf24;
+  --color-log-info: #93c5fd;
+  --color-log-debug: #9ca3af;
+  --color-log-success: #34d399;
+
+  /* Status colors for Kanban - dark mode */
+  --color-status-pending: oklch(0.2500 0.0200 265);
+  --color-status-progress: oklch(0.3500 0.0400 265);
+  --color-status-done: oklch(0.4500 0.0600 265);
+}
+
+/* ============================================================================
+   ShadCN Tailwind v4 Theme Integration
+   ============================================================================ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+}
+
+/* ============================================================================
+   Base Layer
+   ============================================================================ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Form elements inherit colors */
+  button,
+  input,
+  textarea,
+  select {
+    color: inherit;
+    font-family: inherit;
+  }
+
+  /* Smooth theme transitions */
+  :root {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Agent mascot animations */
+@keyframes thinking {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-2px) scale(1.02);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    transform: translateY(-2px) scale(0.98);
+  }
+}
+
+@keyframes working {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1px);
+  }
+  75% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes testing {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes celebrate {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(0deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-2px);
+  }
+  40%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes confetti {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Orchestrator (Maestro) animations */
+@keyframes conducting {
+  0%, 100% {
+    transform: rotate(-10deg);
+  }
+  25% {
+    transform: rotate(5deg);
+  }
+  50% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes batonTap {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+}
+
+/* ============================================================================
+   Utility Classes
+   ============================================================================ */
+
+@layer utilities {
+  .animate-pop-in {
+    animation: popIn 0.2s ease-out;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.2s ease-out;
+  }
+
+  .animate-slide-in-up {
+    animation: slideInUp 0.2s ease-out;
+  }
+
+  .animate-slide-in-down {
+    animation: slideInDown 0.2s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--foreground) 0%,
+      var(--foreground) 40%,
+      var(--primary) 50%,
+      var(--foreground) 60%,
+      var(--foreground) 100%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  .animate-pulse {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .animate-bounce {
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  /* Agent mascot animation utilities */
+  .animate-thinking {
+    animation: thinking 1.5s ease-in-out infinite;
+  }
+
+  .animate-working {
+    animation: working 0.3s ease-in-out infinite;
+  }
+
+  .animate-testing {
+    animation: testing 0.8s ease-in-out infinite;
+  }
+
+  .animate-celebrate {
+    animation: celebrate 0.6s ease-in-out;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out infinite;
+  }
+
+  .animate-confetti {
+    animation: confetti 2s ease-out forwards;
+  }
+
+  /* Orchestrator (Maestro) animation utilities */
+  .animate-conducting {
+    animation: conducting 1s ease-in-out infinite;
+  }
+
+  .animate-baton-tap {
+    animation: batonTap 0.6s ease-in-out infinite;
+  }
+
+  .animate-maestro-idle {
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  .animate-maestro-complete {
+    animation: celebrate 0.8s ease-in-out;
+  }
+
+  /* Stagger delays for sequential animations */
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
+
+  /* Font utilities */
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Neo Brutalism specific utilities */
+  .shadow-neo {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-neo-sm {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-neo-lg {
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+/* ============================================================================
+   Documentation Prose Typography
+   ============================================================================ */
+
+.docs-prose {
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+
+.docs-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+  scroll-margin-top: 5rem;
+}
+
+.docs-prose h2:first-child {
+  margin-top: 0;
+}
+
+.docs-prose h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 5rem;
+}
+
+.docs-prose p {
+  margin-bottom: 1rem;
+  max-width: 65ch;
+}
+
+.docs-prose ul,
+.docs-prose ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.docs-prose ul {
+  list-style-type: disc;
+}
+
+.docs-prose ol {
+  list-style-type: decimal;
+}
+
+.docs-prose li {
+  margin-bottom: 0.375rem;
+}
+
+.docs-prose li > ul,
+.docs-prose li > ol {
+  margin-top: 0.375rem;
+  margin-bottom: 0;
+}
+
+.docs-prose pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.docs-prose code:not(pre code) {
+  background: var(--muted);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.docs-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.docs-prose th {
+  background: var(--muted);
+  font-weight: 600;
+  color: var(--foreground);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+}
+
+.docs-prose td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+}
+
+.docs-prose tr:nth-child(even) td {
+  background: var(--muted);
+  opacity: 0.5;
+}
+
+.docs-prose blockquote {
+  border-left: 4px solid var(--primary);
+  padding-left: 1rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+.docs-prose a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.docs-prose a:hover {
+  opacity: 0.8;
+}
+
+.docs-prose strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.docs-prose hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
