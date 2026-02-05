@@ -1,6 +1,6 @@
 [project]
 name = "cc-discussion"
-version = "1.0.2"
+version = "1.0.3"
 description = "Multi-Claude discussion platform with ClaudeCode context"
 readme = "README.md"
 license = {text = "MIT"}
@@ -28,15 +28,12 @@ dependencies = [
     "sqlalchemy>=2.0.0",
     "python-dotenv>=1.0.0",
     "click>=8.0.0",
-]
-
-[project.optional-dependencies]
-claude = ["claude-agent-sdk>=0.0.3"]
-codex = ["codex-sdk-py>=0.0.3"]
-all = [
+    # Agent SDKs (CLI tools must be installed separately by user)
     "claude-agent-sdk>=0.0.3",
     "codex-sdk-py>=0.0.3",
 ]
+
+[project.optional-dependencies]
 dev = [
     "ruff>=0.8.0",
     "mypy>=1.13.0",

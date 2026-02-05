@@ -11,15 +11,6 @@
 ```bash
 # uvx で即座に実行（Python 3.11以上が必要）
 uvx cc-discussion
-
-# Claude エージェントを使用する場合
-uvx cc-discussion[claude]
-
-# Codex エージェントを使用する場合
-uvx cc-discussion[codex]
-
-# 両方使用する場合
-uvx cc-discussion[all]
 ```
 
 ### pip でインストール
@@ -27,10 +18,9 @@ uvx cc-discussion[all]
 ```bash
 pip install cc-discussion
 cc-discussion
-
-# オプション付き
-pip install cc-discussion[all]
 ```
+
+> **Note**: Claude/Codex エージェントを使用するには、事前に各 CLI ツールのインストールが必要です（下記「必要要件」参照）。
 
 ### 起動オプション
 
@@ -273,16 +263,15 @@ npx tsc --noEmit
 
 ### エージェントタイプが選択できない
 
-SDK がインストールされていない可能性があります：
+CLI ツールがインストールされていない可能性があります：
 
 ```bash
-# Claude エージェントを使う場合
-uvx cc-discussion[claude]
-# または
-pip install cc-discussion[claude]
+# Claude CLI をインストール
+# https://claude.ai/download からダウンロード
+claude login
 
-# Codex エージェントを使う場合
-uvx cc-discussion[codex]
+# Codex CLI をインストール
+npm install -g @openai/codex
 ```
 
 ### Claude CLIが見つからない

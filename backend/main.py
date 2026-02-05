@@ -11,6 +11,7 @@ load_dotenv()
 
 import asyncio
 import logging
+import shutil
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -109,25 +110,19 @@ async def health_check():
     return {"status": "healthy"}
 
 
-# SDK availability check
+# CLI availability check
 @app.get("/api/config/available-agents")
 async def get_available_agents():
-    """Check which agent SDKs are installed and available."""
+    """Check which CLI tools are installed and available."""
     available = []
 
-    # Check ClaudeCode SDK
-    try:
-        from claude_agent_sdk import ClaudeSDKClient
+    # Check Claude CLI (claude command)
+    if shutil.which("claude"):
         available.append("claude")
-    except ImportError:
-        pass
 
-    # Check Codex SDK
-    try:
-        from codex_sdk import Codex
+    # Check Codex CLI (codex command)
+    if shutil.which("codex"):
         available.append("codex")
-    except ImportError:
-        pass
 
     return {"available_agents": available}
 
