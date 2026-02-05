@@ -312,9 +312,10 @@ async def start_discussion(room_id: int, db: Session = Depends(get_db)):
     if room.status == RoomStatus.ACTIVE:
         raise HTTPException(status_code=400, detail="Discussion already active")
 
-    # Allow resuming from COMPLETED state (reset to WAITING)
+    # Allow resuming from COMPLETED state (reset to WAITING and extend max_turns)
     if room.status == RoomStatus.COMPLETED:
         room.status = RoomStatus.WAITING
+        room.max_turns = room.current_turn + 20  # Add 20 more turns
         db.commit()
 
     return {
