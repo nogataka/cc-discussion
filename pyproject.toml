@@ -1,6 +1,6 @@
 [project]
 name = "cc-discussion"
-version = "1.0.3"
+version = "1.0.4"
 description = "Multi-Claude discussion platform with ClaudeCode context"
 readme = "README.md"
 license = {text = "MIT"}

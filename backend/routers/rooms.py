@@ -312,8 +312,10 @@ async def start_discussion(room_id: int, db: Session = Depends(get_db)):
     if room.status == RoomStatus.ACTIVE:
         raise HTTPException(status_code=400, detail="Discussion already active")
 
+    # Allow resuming from COMPLETED state (reset to WAITING)
     if room.status == RoomStatus.COMPLETED:
-        raise HTTPException(status_code=400, detail="Discussion already completed")
+        room.status = RoomStatus.WAITING
+        db.commit()
 
     return {
         "status": "ready",
