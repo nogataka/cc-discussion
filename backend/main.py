@@ -38,14 +38,18 @@ logger = logging.getLogger(__name__)
 
 # Paths - Support both development and packaged installation
 ROOT_DIR = Path(__file__).parent.parent
-UI_DIST_DIR = ROOT_DIR / "frontend" / "dist"
+UI_DIST_DIR = None
 
-# Alternative locations for packaged installation
-if not UI_DIST_DIR.exists():
-    # Try relative to the backend package
-    UI_DIST_DIR = Path(__file__).parent / ".." / "frontend" / "dist"
-    if not UI_DIST_DIR.exists():
-        UI_DIST_DIR = None  # No frontend dist available
+# Try locations in order of preference
+_possible_paths = [
+    ROOT_DIR / "frontend" / "dist",  # Development: project root
+    Path(__file__).parent / "static",  # Packaged: backend/static (copied during build)
+]
+
+for _path in _possible_paths:
+    if _path.exists() and (_path / "index.html").exists():
+        UI_DIST_DIR = _path
+        break
 
 
 @asynccontextmanager

@@ -3,8 +3,8 @@ include README.md
 include LICENSE
 include pyproject.toml
 
-# Include frontend built files
-recursive-include frontend/dist *
+# Include frontend built files (copied to backend/static during CI build)
+recursive-include backend/static *
 
 # Include backend Python files
 recursive-include backend *.py

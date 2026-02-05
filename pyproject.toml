@@ -1,6 +1,6 @@
 [project]
 name = "cc-discussion"
-version = "1.0.0"
+version = "1.0.1"
 description = "Multi-Claude discussion platform with ClaudeCode context"
 readme = "README.md"
 license = {text = "MIT"}
@@ -62,6 +62,7 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
+"backend" = ["static/**/*"]
 
 [tool.ruff]
 line-length = 100

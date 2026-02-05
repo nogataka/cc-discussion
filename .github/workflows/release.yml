@@ -52,6 +52,11 @@ jobs:
           ls -la frontend/dist/
           test -f frontend/dist/index.html
 
+      - name: Copy frontend dist into backend package
+        run: |
+          cp -r frontend/dist backend/static
+          ls -la backend/static/
+
       - name: Install build tools
         run: |
           pip install build twine
