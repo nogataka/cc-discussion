@@ -11,6 +11,9 @@
 ```bash
 # uvx で即座に実行（Python 3.11以上が必要）
 uvx cc-discussion
+
+# または npx で実行（Node.js 環境向け）
+npx cc-discussion
 ```
 
 ### pip でインストール
