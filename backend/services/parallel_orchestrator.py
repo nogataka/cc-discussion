@@ -29,7 +29,13 @@ from .history_reader import (
     get_original_path_from_dir,
 )
 from .codex_history_reader import _decode_path as decode_codex_path
-from .meeting_prompts import get_facilitator_opening
+from .meeting_prompts import (
+    get_facilitator_opening,
+    FACILITATOR_INTERJECTION_PROMPT,
+    FACILITATOR_CLOSING_PROMPT,
+)
+from .mention_parser import find_all_mentioned_participants, parse_mentions
+from .meeting_prompts import FACILITATOR_DESIGNATION_PROMPT
 from ..models.database import (
     DiscussionRoom,
     RoomParticipant,
@@ -449,6 +455,15 @@ class ParallelDiscussionOrchestrator:
         # Event queue for background activity
         self._event_queue: asyncio.Queue = asyncio.Queue()
 
+        # Mention-based speaker queue
+        self._mentioned_speaker_queue: List[int] = []
+
+        # End flag - set when facilitator uses @END
+        self._should_end: bool = False
+
+        # Moderator flag - set when @モデレーター is mentioned
+        self._waiting_for_moderator: bool = False
+
     async def initialize_participants(self):
         """Initialize all participant agents with their contexts."""
         # Get room-level settings
@@ -525,23 +540,105 @@ class ParallelDiscussionOrchestrator:
 
         return "\n".join(lines)
 
-    def _get_next_speakers(self, count: int = PREPARATION_LOOKAHEAD) -> List[int]:
-        """Get indices of next regular speakers to prepare."""
+    def _check_for_mentions(self, content: str, source: str = "participant") -> None:
+        """
+        Check content for @mentions and set the speaker queue.
+
+        Args:
+            content: Message content to check
+            source: Source of the message ("participant", "facilitator", or "moderator")
+        """
+        result = parse_mentions(content)
+
+        # Check for @END - only facilitator can end the discussion
+        if result.is_end and source == "facilitator":
+            self._should_end = True
+            logger.info("@END detected from facilitator - discussion will end")
+            return
+
+        # Check for @モデレーター - pause and wait for human moderator input
+        if result.is_moderator:
+            self._waiting_for_moderator = True
+            logger.info(f"@モデレーター detected from {source} - waiting for moderator input")
+            # Don't return - still process other mentions if any
+
+        # Check for @ALL
+        if result.is_all:
+            self._expand_all_mention()
+            logger.info(f"@ALL detected from {source}: all participants queued")
+            return
+
+        # Get participant objects (not agents) for the mention parser
+        participant_objs = [p.participant for p in self.regular_participants]
+
+        mentioned_ids = find_all_mentioned_participants(
+            content,
+            participant_objs,
+            exclude_facilitator=True,
+        )
+
+        if mentioned_ids:
+            self._mentioned_speaker_queue = mentioned_ids
+            logger.info(
+                f"Mention detected from {source}: next speakers = {mentioned_ids}"
+            )
+
+    def _expand_all_mention(self) -> None:
+        """Expand @ALL to queue all participants in list order."""
+        self._mentioned_speaker_queue = [
+            agent.participant.id
+            for agent in self.regular_participants
+        ]
+
+    def _get_next_speaker(self) -> Optional[ParticipantAgent]:
+        """
+        Get the next speaker from the mention queue.
+
+        Returns:
+            ParticipantAgent if someone is nominated, None if no nomination.
+            When None is returned, the facilitator should intervene.
+        """
+        # Only use mention queue - no round-robin fallback
+        if self._mentioned_speaker_queue:
+            next_id = self._mentioned_speaker_queue.pop(0)
+            for agent in self.regular_participants:
+                if agent.participant.id == next_id:
+                    logger.info(f"Next speaker from mention queue: {agent.participant.name}")
+                    return agent
+            # ID not found in participants (shouldn't happen)
+            logger.warning(f"Mentioned participant ID {next_id} not found")
+
+        # No nomination - return None to trigger facilitator intervention
+        logger.info("No speaker nominated - facilitator intervention needed")
+        return None
+
+    def _get_participation_stats(self) -> str:
+        """Get participation statistics for facilitator designation prompt."""
+        stats_lines = []
+        for agent in self.regular_participants:
+            count = agent.participant.message_count or 0
+            stats_lines.append(f"- {agent.participant.name}: {count} 回発言")
+        return "\n".join(stats_lines)
+
+    def _get_speakers_to_prepare(self, count: int = PREPARATION_LOOKAHEAD) -> List[ParticipantAgent]:
+        """Get agents to prepare based on mention queue."""
         if not self.regular_participants:
             return []
 
-        indices = []
-        for i in range(1, count + 1):
-            idx = (self.current_speaker_idx + i) % len(self.regular_participants)
-            if idx != self.current_speaker_idx:
-                indices.append(idx)
-        return indices
+        agents_to_prepare = []
+
+        # Prepare participants in the mention queue
+        for pid in self._mentioned_speaker_queue[:count]:
+            for agent in self.regular_participants:
+                if agent.participant.id == pid and agent not in agents_to_prepare:
+                    agents_to_prepare.append(agent)
+                    break
+
+        return agents_to_prepare
 
     def _start_preparations(self, history: str):
-        """Start preparation for upcoming regular speakers."""
-        for idx in self._get_next_speakers():
-            agent = self.regular_participants[idx]
-
+        """Start preparation for upcoming speakers in mention queue."""
+        for agent in self._get_speakers_to_prepare():
             if not agent.is_preparing and not agent.preparation_complete:
                 def on_activity(activity: str, agent=agent):
                     # Queue activity event for broadcast
@@ -592,18 +689,36 @@ class ParallelDiscussionOrchestrator:
                 break
 
     async def run_turn(self) -> AsyncGenerator[dict, None]:
-        """Run a single turn of discussion with parallel preparation."""
-        logger.info(f"run_turn: starting turn {self.room.current_turn + 1}")
+        """
+        Run a single turn of discussion.
+
+        Deprecated: Use run_turn_for_speaker() with explicit speaker instead.
+        This method is kept for backwards compatibility.
+        """
+        speaker = self._get_next_speaker()
+        if speaker is None:
+            # No speaker nominated - this should be handled by the caller
+            logger.warning("run_turn called but no speaker nominated")
+            if self.regular_participants:
+                speaker = self.regular_participants[0]
+            else:
+                yield {"type": "error", "content": "No participants initialized"}
+                return
+
+        async for chunk in self.run_turn_for_speaker(speaker):
+            yield chunk
+
+    async def run_turn_for_speaker(self, speaker: ParticipantAgent) -> AsyncGenerator[dict, None]:
+        """Run a single turn of discussion for the specified speaker."""
+        logger.info(f"run_turn_for_speaker: starting turn {self.room.current_turn + 1}")
 
         if not self.regular_participants:
-            logger.error("run_turn: no regular participants initialized")
+            logger.error("run_turn_for_speaker: no regular participants initialized")
             yield {"type": "error", "content": "No participants initialized"}
             return
 
-        # Get current speaker (from regular participants, not facilitator)
-        speaker = self.regular_participants[self.current_speaker_idx]
         participant = speaker.participant
-        logger.info(f"run_turn: speaker is {participant.name} (idx={self.current_speaker_idx})")
+        logger.info(f"run_turn_for_speaker: speaker is {participant.name}")
 
         yield {
             "type": "turn_start",
@@ -671,10 +786,11 @@ class ParallelDiscussionOrchestrator:
         participant.is_speaking = False
         participant.message_count += 1
         self.room.current_turn += 1
-        self.current_speaker_idx = (
-            self.current_speaker_idx + 1
-        ) % len(self.regular_participants)
         self.db.commit()
+
+        # Check for @mentions in participant's response (chain-driven flow)
+        if full_content:
+            self._check_for_mentions(full_content, source="participant")
 
         yield {
             "type": "turn_complete",
@@ -737,6 +853,9 @@ class ParallelDiscussionOrchestrator:
             participant.message_count += 1
             self.db.commit()
 
+            # Check for @mention in opening message to queue first speaker
+            self._check_for_mentions(opening_message, source="facilitator")
+
             yield {
                 "type": "turn_complete",
                 "participant_id": participant.id,
@@ -765,8 +884,9 @@ class ParallelDiscussionOrchestrator:
         participant.is_speaking = True
         self.db.commit()
 
-        # Build conversation history for closing summary
+        # Build conversation history with closing prompt
         history = self._build_conversation_history()
+        history += f"\n\n{FACILITATOR_CLOSING_PROMPT}"
 
         # Generate closing using the agent (so it can summarize the discussion)
         full_content = ""
@@ -804,8 +924,159 @@ class ParallelDiscussionOrchestrator:
             "is_closing": True,
         }
 
+    async def run_facilitator_interjection(self) -> AsyncGenerator[dict, None]:
+        """Generate facilitator interjection message during discussion."""
+        if not self.facilitator:
+            return
+
+        participant = self.facilitator.participant
+
+        yield {
+            "type": "turn_start",
+            "participant_id": participant.id,
+            "participant_name": participant.name,
+            "turn_number": self.room.current_turn + 1,
+            "is_facilitator": True,
+            "is_interjection": True,
+        }
+
+        # Mark as speaking
+        participant.is_speaking = True
+        self.db.commit()
+
+        # Build conversation history with interjection prompt
+        history = self._build_conversation_history()
+        history += f"\n\n{FACILITATOR_INTERJECTION_PROMPT}"
+
+        # Generate interjection using the agent
+        full_content = ""
+        async for chunk in self.facilitator.speak(history):
+            if chunk["type"] == "text":
+                yield {
+                    "type": "text",
+                    "content": chunk["content"],
+                    "participant_id": participant.id,
+                }
+            elif chunk["type"] == "response_complete":
+                full_content = chunk["full_content"]
+
+        # Save to database
+        self.room.current_turn += 1
+        message = DiscussionMessage(
+            room_id=self.room.id,
+            participant_id=participant.id,
+            role="participant",
+            content=full_content,
+            turn_number=self.room.current_turn,
+        )
+        self.db.add(message)
+
+        participant.is_speaking = False
+        participant.message_count += 1
+        self.db.commit()
+
+        # Check for @mentions in the facilitator's message
+        if full_content:
+            self._check_for_mentions(full_content, source="facilitator")
+
+        yield {
+            "type": "turn_complete",
+            "participant_id": participant.id,
+            "message_id": message.id,
+            "turn_number": self.room.current_turn,
+            "is_facilitator": True,
+            "is_interjection": True,
+        }
+
+    async def run_facilitator_designation(self) -> AsyncGenerator[dict, None]:
+        """
+        Facilitator designates the next speaker when no one was nominated.
+
+        This is called when a participant finishes speaking without nominating
+        the next speaker. Facilitator is required for chain-driven flow.
+        """
+        # Facilitator is guaranteed to exist (checked in run_discussion)
+        participant = self.facilitator.participant
+
+        yield {
+            "type": "turn_start",
+            "participant_id": participant.id,
+            "participant_name": participant.name,
+            "turn_number": self.room.current_turn + 1,
+            "is_facilitator": True,
+            "is_designation": True,
+        }
+
+        # Mark as speaking
+        participant.is_speaking = True
+        self.db.commit()
+
+        # Build conversation history with designation prompt
+        history = self._build_conversation_history()
+        stats = self._get_participation_stats()
+        designation_prompt = FACILITATOR_DESIGNATION_PROMPT.format(
+            participation_stats=stats
+        )
+        history += f"\n\n{designation_prompt}"
+
+        # Generate designation using the agent
+        full_content = ""
+        async for chunk in self.facilitator.speak(history):
+            if chunk["type"] == "text":
+                yield {
+                    "type": "text",
+                    "content": chunk["content"],
+                    "participant_id": participant.id,
+                }
+            elif chunk["type"] == "response_complete":
+                full_content = chunk["full_content"]
+
+        # Save to database
+        self.room.current_turn += 1
+        message = DiscussionMessage(
+            room_id=self.room.id,
+            participant_id=participant.id,
+            role="participant",
+            content=full_content,
+            turn_number=self.room.current_turn,
+        )
+        self.db.add(message)
+
+        participant.is_speaking = False
+        participant.message_count += 1
+        self.db.commit()
+
+        # Check for @mentions in the facilitator's designation
+        if full_content:
+            self._check_for_mentions(full_content, source="facilitator")
+
+        yield {
+            "type": "turn_complete",
+            "participant_id": participant.id,
+            "message_id": message.id,
+            "turn_number": self.room.current_turn,
+            "is_facilitator": True,
+            "is_designation": True,
+        }
+
     async def run_discussion(self) -> AsyncGenerator[dict, None]:
-        """Run the full discussion with parallel preparation."""
+        """
+        Run the full discussion with chain-driven flow.
+
+        Chain-driven flow:
+        1. Facilitator opens and nominates first speaker (REQUIRED)
+        2. Each speaker nominates the next speaker at the end of their turn
+        3. If no nomination, facilitator intervenes to designate next speaker
+        4. Facilitator closes when max turns reached
+        """
+        # Facilitator is required for chain-driven flow
+        if not self.facilitator:
+            yield {
+                "type": "error",
+                "content": "ファシリテーターが必要です。ルームにファシリテーターを追加してください。"
+            }
+            return
+
         self._running = True
         self._paused = False
         self.room.status = RoomStatus.ACTIVE
@@ -815,22 +1086,59 @@ class ParallelDiscussionOrchestrator:
             "type": "discussion_start",
             "room_id": self.room.id,
             "max_turns": self.room.max_turns,
-            "has_facilitator": self.facilitator is not None,
+            "has_facilitator": True,
         }
 
-        # Facilitator opening (if present)
-        if self.facilitator:
-            async for chunk in self.run_facilitator_opening():
-                yield chunk
-            await asyncio.sleep(1)
+        # Facilitator opening (nominates first speaker via @mention)
+        async for chunk in self.run_facilitator_opening():
+            yield chunk
+        await asyncio.sleep(1)
 
+        # Main discussion loop - chain-driven
         while (
             self._running
             and not self._paused
+            and not self._should_end
             and self.room.current_turn < self.room.max_turns
         ):
-            async for chunk in self.run_turn():
+            # Get next speaker from mention queue
+            speaker = self._get_next_speaker()
+
+            if speaker is None:
+                # No one nominated - facilitator intervenes
+                async for chunk in self.run_facilitator_designation():
+                    yield chunk
+                await asyncio.sleep(1)
+
+                # Check if facilitator used @END
+                if self._should_end:
+                    logger.info("Facilitator used @END - moving to closing")
+                    break
+
+                # After designation, check if there's now a speaker
+                speaker = self._get_next_speaker()
+                if speaker is None:
+                    # Still no speaker after designation
+                    # This means the discussion should naturally conclude
+                    logger.info("No speaker after facilitator designation - moving to closing")
+                    break
+
+            # Run the turn for the nominated speaker
+            async for chunk in self.run_turn_for_speaker(speaker):
                 yield chunk
+
+            # Check if moderator was mentioned - pause for human input
+            if self._waiting_for_moderator:
+                yield {
+                    "type": "waiting_for_moderator",
+                    "turn": self.room.current_turn,
+                    "message": "モデレーターへの質問があります。返答をお願いします。",
+                }
+                # Pause the discussion - will resume when moderator sends a message
+                self._paused = True
+                self.room.status = RoomStatus.PAUSED
+                self.db.commit()
+                break
 
             # Small delay between turns
             await asyncio.sleep(1)

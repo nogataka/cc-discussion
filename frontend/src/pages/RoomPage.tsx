@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Hash, Plus, Trash2, Users, ChevronDown } from 'lucide-react'
+import { Loader2, Hash, Plus, Trash2, Users, ChevronDown, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRoomWebSocket } from '@/hooks/useRoomWebSocket'
 import { api } from '@/lib/api'
@@ -69,6 +69,16 @@ export function RoomPage() {
     },
   })
 
+  // Update room mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ roomId, data }: { roomId: number; data: { name?: string; topic?: string; max_turns?: number } }) =>
+      api.updateRoom(roomId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+      queryClient.invalidateQueries({ queryKey: ['room', id] })
+    },
+  })
+
   // WebSocket connection
   const wsState = useRoomWebSocket(id)
 
@@ -89,6 +99,11 @@ export function RoomPage() {
     return counts
   }, [messages])
 
+  // Count moderator messages
+  const moderatorMessageCount = useMemo(() => {
+    return messages.filter(msg => msg.role === 'moderator').length
+  }, [messages])
+
   // Enrich participants with calculated message counts
   const participants = useMemo(() => {
     return rawParticipants.map((p) => ({
@@ -104,6 +119,17 @@ export function RoomPage() {
   const handleStart = () => wsState.sendMessage({ type: 'start' })
   const handlePause = () => wsState.sendMessage({ type: 'pause' })
   const handleStop = () => wsState.sendMessage({ type: 'stop' })
+  const handleDelete = () => {
+    if (id && confirm('このルームを削除しますか？')) {
+      deleteMutation.mutate(id)
+    }
+  }
+
+  const handleRename = (newName: string) => {
+    if (id) {
+      updateMutation.mutate({ roomId: id, data: { name: newName } })
+    }
+  }
 
   const handleRoomCreated = (newRoomId: number) => {
     setShowCreateModal(false)
@@ -223,6 +249,8 @@ export function RoomPage() {
               onStart={handleStart}
               onPause={handlePause}
               onStop={handleStop}
+              onDelete={handleDelete}
+              onRename={handleRename}
             />
             <MessageList
               messages={messages}
@@ -236,8 +264,9 @@ export function RoomPage() {
             />
             <MessageInput
               onSend={handleSendModeratorMessage}
-              placeholder="モデレーターメッセージを送信..."
+              placeholder="モデレーターメッセージを送信... (@でメンション)"
               disabled={!wsState.isConnected}
+              participants={messageListParticipants}
             />
           </>
         )}
@@ -256,6 +285,36 @@ export function RoomPage() {
 
           <div className="flex-1 overflow-y-auto p-3">
             <div className="space-y-2">
+              {/* Moderator */}
+              <div className="p-3 rounded-lg hover:bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <User className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate text-sm text-amber-700">
+                        モデレーター
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">人間（あなた）</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 text-xs text-muted-foreground">
+                  <span>{moderatorMessageCount} 件</span>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] py-0 border-amber-500 text-amber-600"
+                  >
+                    Human
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 my-2" />
+
+              {/* AI Participants */}
               {participants.map((participant) => {
                 const isActive =
                   participant.is_speaking ||

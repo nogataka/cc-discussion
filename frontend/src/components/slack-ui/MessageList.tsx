@@ -1,6 +1,43 @@
 import { useEffect, useRef } from 'react'
 import { MessageGroup } from './MessageGroup'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, User } from 'lucide-react'
+
+/**
+ * Parse and highlight @mentions in message content.
+ * Returns an array of React elements with mentions styled in blue.
+ */
+function highlightMentions(content: string): React.ReactNode {
+  // Match @name patterns (including @ALL, @END, @モデレーター, @moderator, @[name with spaces], @name_with_underscore, @Name X)
+  // Added support for space + single letter suffix (e.g., @エージェント B)
+  const mentionPattern = /@(?:\[[^\]]+\]|ALL\b|END\b|モデレーター\b|moderator\b|[\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF][\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\-_]*(?: [A-Za-z0-9])?)/gi
+
+  const parts: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = mentionPattern.exec(content)) !== null) {
+    // Add text before the mention
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index))
+    }
+
+    // Add the mention with blue styling
+    parts.push(
+      <span key={match.index} className="text-blue-600 font-medium">
+        {match[0]}
+      </span>
+    )
+
+    lastIndex = match.index + match[0].length
+  }
+
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex))
+  }
+
+  return parts.length > 0 ? parts : content
+}
 
 interface Message {
   id: number
@@ -111,14 +148,41 @@ export function MessageList({
         {/* Render message groups with moderator messages interspersed */}
         {messages.map((msg, idx) => {
           if (msg.role === 'moderator') {
-            // Render moderator message inline
+            // Render moderator message like participant messages but with amber background
+            const msgTime = new Date(msg.created_at).toLocaleTimeString('ja-JP', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
             return (
               <div
                 key={`mod-${msg.id}`}
-                className="flex justify-center py-2 px-4"
+                className="flex gap-3 py-2 px-4 bg-amber-50 hover:bg-amber-100/70 transition-colors"
               >
-                <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 px-4 py-2 rounded-lg text-sm max-w-[80%]">
-                  <span className="font-medium">[Moderator]:</span> {msg.content}
+                {/* Avatar */}
+                <div className="w-10 flex-shrink-0 pt-0.5">
+                  <div className="w-10 h-10 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center">
+                    <User className="w-5 h-5 text-amber-600" />
+                  </div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  {/* Header - Name, Role, Time */}
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="font-bold text-amber-700">
+                      モデレーター
+                    </span>
+                    <span className="text-xs text-muted-foreground bg-amber-200/50 px-1.5 py-0.5 rounded">
+                      Human
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {msgTime}
+                    </span>
+                  </div>
+
+                  {/* Message content */}
+                  <div className="text-sm text-foreground leading-relaxed">
+                    <span className="whitespace-pre-wrap">{highlightMentions(msg.content)}</span>
+                  </div>
                 </div>
               </div>
             )

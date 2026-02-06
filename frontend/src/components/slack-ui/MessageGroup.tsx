@@ -1,5 +1,42 @@
 import { ParticipantAvatar } from '../ParticipantAvatar'
 
+/**
+ * Parse and highlight @mentions in message content.
+ * Returns an array of React elements with mentions styled in blue.
+ */
+function highlightMentions(content: string): React.ReactNode {
+  // Match @name patterns (including @ALL, @END, @モデレーター, @moderator, @[name with spaces], @name_with_underscore, @Name X)
+  // Added support for space + single letter suffix (e.g., @エージェント B)
+  const mentionPattern = /@(?:\[[^\]]+\]|ALL\b|END\b|モデレーター\b|moderator\b|[\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF][\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\-_]*(?: [A-Za-z0-9])?)/gi
+
+  const parts: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = mentionPattern.exec(content)) !== null) {
+    // Add text before the mention
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index))
+    }
+
+    // Add the mention with blue styling
+    parts.push(
+      <span key={match.index} className="text-blue-600 font-medium">
+        {match[0]}
+      </span>
+    )
+
+    lastIndex = match.index + match[0].length
+  }
+
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex))
+  }
+
+  return parts.length > 0 ? parts : content
+}
+
 interface Message {
   id: number
   content: string
@@ -86,14 +123,14 @@ export function MessageGroup({
                   {formatTime(msg.created_at)}
                 </span>
               )}
-              <span className="whitespace-pre-wrap">{stripNamePrefix(msg.content)}</span>
+              <span className="whitespace-pre-wrap">{highlightMentions(stripNamePrefix(msg.content))}</span>
             </div>
           ))}
 
           {/* Streaming content */}
           {isStreaming && streamingContent && (
             <div className="text-sm text-foreground leading-relaxed">
-              <span className="whitespace-pre-wrap">{stripNamePrefix(streamingContent)}</span>
+              <span className="whitespace-pre-wrap">{highlightMentions(stripNamePrefix(streamingContent))}</span>
               <span className="inline-block w-2 h-4 bg-primary ml-0.5 animate-pulse" />
             </div>
           )}

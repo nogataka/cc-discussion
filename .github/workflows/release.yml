@@ -1,4 +1,4 @@
-name: Release to PyPI
+name: Release
 
 on:
   push:
@@ -15,20 +15,16 @@ permissions:
   id-token: write
 
 jobs:
-  release:
+  # ========================================
+  # Build Frontend (shared step)
+  # ========================================
+  build-frontend:
     runs-on: ubuntu-latest
-    environment: release
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,6 +47,38 @@ jobs:
         run: |
           ls -la frontend/dist/
           test -f frontend/dist/index.html
+
+      - name: Upload frontend dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 1
+
+  # ========================================
+  # PyPI Release
+  # ========================================
+  release-pypi:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    environment: release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
 
       - name: Copy frontend dist into backend package
         run: |
@@ -80,23 +108,91 @@ jobs:
           python -m build
           ls -la dist/
 
-      - name: Check if version already published
-        id: already
+      - name: Check if version already published on PyPI
+        id: pypi-check
         run: |
           if pip index versions cc-discussion 2>/dev/null | grep -q "${{ steps.ver.outputs.version }}"; then
             echo "published=true" >> "$GITHUB_OUTPUT"
-            echo "cc-discussion@${{ steps.ver.outputs.version }} is already published. Skipping."
+            echo "cc-discussion@${{ steps.ver.outputs.version }} is already published on PyPI. Skipping."
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Publish to PyPI
-        if: steps.already.outputs.published == 'false'
+        if: steps.pypi-check.outputs.published == 'false'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           twine upload dist/*
+
+  # ========================================
+  # npm Release
+  # ========================================
+  release-npm:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    environment: release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+
+      - name: Verify tag and version match
+        id: ver
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          case "${{ github.event_name }}" in
+            workflow_dispatch) TAG="${{ github.event.inputs.tag_name }}";;
+            *) TAG="${{ github.ref_name }}";;
+          esac
+          if [ "v${PKG_VERSION}" != "$TAG" ]; then
+            echo "Tag (${TAG}) and package.json version (v${PKG_VERSION}) mismatch" >&2
+            exit 1
+          fi
+          echo "version=${PKG_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version already published on npm
+        id: npm-check
+        run: |
+          if npm view cc-discussion@${{ steps.ver.outputs.version }} version 2>/dev/null; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "cc-discussion@${{ steps.ver.outputs.version }} is already published on npm. Skipping."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.npm-check.outputs.published == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm publish
+
+  # ========================================
+  # GitHub Release
+  # ========================================
+  create-release:
+    needs: [release-pypi, release-npm]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Determine release metadata
         id: meta
@@ -119,6 +215,13 @@ jobs:
           body: |
             ## Installation
 
+            ### Using npm (recommended for Node.js users)
+            ```bash
+            npm install -g cc-discussion
+            cc-discussion
+            ```
+
+            ### Using pip/uvx (recommended for Python users)
             ```bash
             # Using uvx (recommended)
             uvx cc-discussion
@@ -126,15 +229,26 @@ jobs:
             # Using pip
             pip install cc-discussion
             cc-discussion
+            ```
 
-            # With Claude agent support
-            pip install cc-discussion[claude]
+            ### Configuration
+            ```bash
+            # Open config file
+            cc-discussion config
 
-            # With Codex agent support
-            pip install cc-discussion[codex]
+            # Show config file path
+            cc-discussion config --path
 
-            # With all agents
-            pip install cc-discussion[all]
+            # Show current configuration
+            cc-discussion config --show
+            ```
+
+            ### Options
+            ```bash
+            cc-discussion --port 9000      # Custom port
+            cc-discussion --host 0.0.0.0   # Allow remote access
+            cc-discussion --no-browser     # Don't open browser
+            cc-discussion --repair         # Recreate virtual environment
             ```
           draft: false
           prerelease: false

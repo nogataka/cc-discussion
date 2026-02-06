@@ -82,6 +82,13 @@ class ModeratorMessage(BaseModel):
     content: str = Field(..., min_length=1)
 
 
+class UpdateRoom(BaseModel):
+    """Request model for updating a room."""
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    topic: Optional[str] = None
+    max_turns: Optional[int] = Field(None, ge=1, le=100)
+
+
 class RoomResponse(BaseModel):
     """Response model for a room."""
     id: int
@@ -281,6 +288,40 @@ async def get_room(room_id: int, db: Session = Depends(get_db)):
             for m in sorted(room.messages, key=lambda x: x.created_at)
         ],
     )
+
+
+@router.patch("/{room_id}")
+async def update_room(
+    room_id: int,
+    update_data: UpdateRoom,
+    db: Session = Depends(get_db)
+):
+    """Update a discussion room's properties."""
+    room = db.query(DiscussionRoom).filter(
+        DiscussionRoom.id == room_id
+    ).first()
+
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    # Update only provided fields
+    if update_data.name is not None:
+        room.name = update_data.name
+    if update_data.topic is not None:
+        room.topic = update_data.topic
+    if update_data.max_turns is not None:
+        room.max_turns = update_data.max_turns
+
+    db.commit()
+    db.refresh(room)
+
+    return {
+        "status": "updated",
+        "room_id": room_id,
+        "name": room.name,
+        "topic": room.topic,
+        "max_turns": room.max_turns,
+    }
 
 
 @router.delete("/{room_id}")

@@ -64,6 +64,7 @@ def build_prompt(
     is_facilitator: bool = False,
     mode: str = "speak",
     preparation_notes: str = "",
+    nomination_instruction: str = "",
 ) -> str:
     """Build the prompt for Codex participant."""
     role_desc = role or "discussion participant"
@@ -141,12 +142,24 @@ This is a DISCUSSION-ONLY environment. DO NOT modify any files.
 ## Your Background Context
 {context if context else "(No prior context provided)"}
 
+## IMPORTANT: Before Responding
+When you are nominated to speak, follow this process:
+
+1. **Review the conversation**: Understand what has been discussed and what question/point was directed at you
+2. **Check relevant files**: If the discussion involves code, examine the relevant files in your working directory before forming your opinion
+3. **Formulate your response**: Based on your understanding of both the conversation AND the actual code
+
+Do NOT respond immediately with generic observations. Take time to read the relevant code first.
+
 ## Discussion Guidelines
 1. Reference other participants by name
 2. Be concise (2-4 paragraphs)
 3. Start with [{name}]:
 4. Focus on analysis, architecture discussions, code review feedback, and sharing knowledge
 5. Do NOT offer to implement anything - only discuss approaches and trade-offs
+6. **Ground your discussion in actual code** - cite specific files when relevant
+
+{nomination_instruction}
 """
 
     # Add conversation history and final instruction
@@ -198,15 +211,20 @@ async def run_codex_agent(
 
     # Build meeting type prompt
     meeting_type_prompt = ""
-    if meeting_type:
-        # Import meeting_prompts - handle both module and standalone execution
-        try:
-            from .meeting_prompts import get_meeting_type_prompt
-        except ImportError:
-            sys.path.insert(0, str(Path(__file__).parent))
-            from meeting_prompts import get_meeting_type_prompt
+    nomination_instruction = ""
+    # Import meeting_prompts - handle both module and standalone execution
+    try:
+        from .meeting_prompts import get_meeting_type_prompt, PARTICIPANT_NOMINATION_INSTRUCTION
+    except ImportError:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from meeting_prompts import get_meeting_type_prompt, PARTICIPANT_NOMINATION_INSTRUCTION
 
+    if meeting_type:
         meeting_type_prompt = get_meeting_type_prompt(meeting_type, custom_meeting_description)
+
+    # Add nomination instruction for chain-driven flow (not for facilitator or prepare mode)
+    if not is_facilitator and mode == "speak":
+        nomination_instruction = PARTICIPANT_NOMINATION_INSTRUCTION
 
     prompt = build_prompt(
         name=participant_name,
@@ -219,6 +237,7 @@ async def run_codex_agent(
         is_facilitator=is_facilitator,
         mode=mode,
         preparation_notes=preparation_notes,
+        nomination_instruction=nomination_instruction,
     )
 
     try:

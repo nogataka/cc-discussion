@@ -68,8 +68,9 @@ export function CreateRoomModal({
   const [customMeetingDescription, setCustomMeetingDescription] = useState('')
   const [language, setLanguage] = useState<'ja' | 'en'>('ja')
   const [participants, setParticipants] = useState<ParticipantForm[]>([
-    { id: generateId(), name: 'エージェント A', role: '', color: COLORS[0], agent_type: 'claude' },
-    { id: generateId(), name: 'エージェント B', role: '', color: COLORS[1], agent_type: 'claude' },
+    { id: generateId(), name: 'Facilitator', role: 'ファシリテーター', color: '#9333ea', is_facilitator: true, agent_type: 'claude' },
+    { id: generateId(), name: 'エージェントA', role: '', color: COLORS[0], agent_type: 'claude' },
+    { id: generateId(), name: 'エージェントB', role: '', color: COLORS[1], agent_type: 'claude' },
   ])
   const [expandedParticipant, setExpandedParticipant] = useState<number | null>(null)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
@@ -193,8 +194,9 @@ export function CreateRoomModal({
     setCustomMeetingDescription('')
     setLanguage('ja')
     setParticipants([
-      { id: generateId(), name: 'エージェント A', role: '', color: COLORS[0], agent_type: defaultAgentType },
-      { id: generateId(), name: 'エージェント B', role: '', color: COLORS[1], agent_type: defaultAgentType },
+      { id: generateId(), name: 'Facilitator', role: 'ファシリテーター', color: '#9333ea', is_facilitator: true, agent_type: defaultAgentType },
+      { id: generateId(), name: 'エージェントA', role: '', color: COLORS[0], agent_type: defaultAgentType },
+      { id: generateId(), name: 'エージェントB', role: '', color: COLORS[1], agent_type: defaultAgentType },
     ])
     setExpandedParticipant(null)
     setSelectedProject(null)
@@ -202,39 +204,28 @@ export function CreateRoomModal({
   }
 
   const handleAddParticipant = () => {
-    if (participants.length >= 3) return
+    // Allow up to 3 regular participants (plus facilitator)
+    const regularCount = participants.filter(p => !p.is_facilitator).length
+    if (regularCount >= 3) return
     setParticipants(prev => [
       ...prev,
       {
         id: generateId(),
-        name: `エージェント ${String.fromCharCode(65 + prev.length)}`,
+        name: `エージェント${String.fromCharCode(65 + regularCount)}`,
         role: '',
-        color: COLORS[prev.length % COLORS.length],
+        color: COLORS[regularCount % COLORS.length],
         agent_type: defaultAgentType,
       },
-    ])
-  }
-
-  const handleAddFacilitator = () => {
-    // Check if facilitator already exists
-    const hasFacilitator = participants.some(p => p.is_facilitator)
-    if (hasFacilitator || participants.length >= 3) return
-    setParticipants(prev => [
-      {
-        id: generateId(),
-        name: 'Facilitator',
-        role: 'ファシリテーター',
-        color: '#9333ea',  // Purple
-        is_facilitator: true,
-        agent_type: defaultAgentType,
-      },
-      ...prev,
     ])
   }
 
   const handleRemoveParticipant = (index: number) => {
     setParticipants(prev => {
-      if (prev.length <= 2) return prev
+      // Don't remove facilitator
+      if (prev[index]?.is_facilitator) return prev
+      // Keep at least 2 regular participants
+      const regularCount = prev.filter(p => !p.is_facilitator).length
+      if (regularCount <= 2) return prev
       return prev.filter((_, i) => i !== index)
     })
   }
@@ -425,19 +416,10 @@ export function CreateRoomModal({
           {/* Participants */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <Label>参加者 ({participants.length}/3)</Label>
+              <Label>参加者 (ファシリテーター + {participants.filter(p => !p.is_facilitator).length}名)</Label>
               <div className="flex gap-2">
-                {!participants.some(p => p.is_facilitator) && participants.length < 3 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddFacilitator}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    ファシリテーター追加
-                  </Button>
-                )}
-                {participants.length < 3 && (
+                {/* ファシリテーターは必須（デフォルトで含まれる） */}
+                {participants.filter(p => !p.is_facilitator).length < 3 && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -603,6 +585,7 @@ export function CreateRoomModal({
                                   <p className="text-sm font-medium text-muted-foreground mb-3">
                                     プロジェクトを選択:
                                   </p>
+
                                   {participant.agent_type === 'codex' ? (
                                     // Codex projects
                                     <>
@@ -683,6 +666,40 @@ export function CreateRoomModal({
                                       空のセッションを非表示
                                     </label>
                                   </div>
+
+                                  {/* No Context Option - project selected but no session context */}
+                                  <button
+                                    className="w-full text-left p-3 hover:bg-muted rounded-lg text-sm border-2 border-dashed border-muted-foreground/30 bg-background transition-colors mb-2"
+                                    onClick={() => {
+                                      // Set project dir but no session (for cwd), clear session context
+                                      const project = participant.agent_type === 'codex'
+                                        ? sortedCodexProjects.find(p => p.id === selectedProject)
+                                        : sortedProjects.find(p => p.id === selectedProject)
+                                      if (project) {
+                                        setParticipants(prev => {
+                                          const updated = [...prev]
+                                          updated[index] = {
+                                            ...updated[index],
+                                            context_project_dir: project.id,
+                                            context_session_id: undefined,
+                                            selectedProjectName: project.name,
+                                            selectedSessionPrompt: '（コンテキストなし）',
+                                          }
+                                          return updated
+                                        })
+                                        setExpandedParticipant(null)
+                                        setSelectedProject(null)
+                                      }
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                      <Plus className="w-4 h-4" />
+                                      <span className="font-medium">新規セッション（コンテキストなし）</span>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-1 ml-6">
+                                      このプロジェクト上で、過去の会話履歴なしで開始
+                                    </div>
+                                  </button>
 
                                   {participant.agent_type === 'codex' ? (
                                     // Codex sessions
@@ -801,8 +818,8 @@ export function CreateRoomModal({
                         </div>
                       </div>
 
-                      {/* Remove button */}
-                      {participants.length > 2 && (
+                      {/* Remove button - facilitator cannot be removed */}
+                      {!participant.is_facilitator && participants.filter(p => !p.is_facilitator).length > 2 && (
                         <Button
                           variant="ghost"
                           size="sm"

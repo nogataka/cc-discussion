@@ -55,6 +55,7 @@ try:
         get_meeting_type_prompt,
         get_language_instruction,
         FACILITATOR_SYSTEM_PROMPT,
+        PARTICIPANT_NOMINATION_INSTRUCTION,
     )
 except ImportError:
     # Running as standalone script - use direct import
@@ -65,6 +66,7 @@ except ImportError:
         get_meeting_type_prompt,
         get_language_instruction,
         FACILITATOR_SYSTEM_PROMPT,
+        PARTICIPANT_NOMINATION_INSTRUCTION,
     )
 
 # Configure logging to stderr (stdout is reserved for JSON output)
@@ -195,6 +197,15 @@ The following is conversation history from your previous work that is relevant t
 
 {context if context else "(No prior context provided)"}
 
+## IMPORTANT: Before Responding
+When you are nominated to speak, follow this process:
+
+1. **Review the conversation**: Understand what has been discussed and what question/point was directed at you
+2. **Check relevant files**: If the discussion involves code, use Read/Grep/Glob to examine the relevant files in your working directory before forming your opinion
+3. **Formulate your response**: Based on your understanding of both the conversation AND the actual code
+
+Do NOT respond immediately with generic observations. Take time to read the relevant code first.
+
 ## Discussion Guidelines
 1. Build on what others have said - reference their points by name
 2. Share insights from your background context when relevant
@@ -204,11 +215,15 @@ The following is conversation history from your previous work that is relevant t
 6. When the discussion seems complete, suggest concrete next steps or conclusions
 7. Focus on analysis, architecture discussions, code review feedback, and sharing knowledge
 8. Do NOT offer to implement anything - only discuss approaches and trade-offs
+9. **Ground your discussion in actual code** - cite specific files and line numbers when relevant
+
+{PARTICIPANT_NOMINATION_INSTRUCTION}
 
 ## Response Format
 - Start your response with [{name}]:
 - Write in a conversational but professional tone
 - Focus on substance over pleasantries
+- Reference specific files/code when making technical points
 """
     return prompt
 

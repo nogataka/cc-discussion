@@ -1,7 +1,9 @@
-import { Hash, Users, Play, Pause, Square, Wifi, WifiOff } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Hash, Users, Play, Pause, Square, Wifi, WifiOff, Trash2, Pencil, Check, X } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { ParticipantAvatar } from '../ParticipantAvatar'
+import { Input } from '../ui/input'
 
 interface Participant {
   id: number
@@ -22,6 +24,8 @@ interface RoomHeaderProps {
   onStart: () => void
   onPause: () => void
   onStop: () => void
+  onDelete?: () => void
+  onRename?: (newName: string) => void
 }
 
 function getStatusBadge(status: string) {
@@ -48,17 +52,104 @@ export function RoomHeader({
   onStart,
   onPause,
   onStop,
+  onDelete,
+  onRename,
 }: RoomHeaderProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(name)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
+
+  // Update editValue when name prop changes
+  useEffect(() => {
+    setEditValue(name)
+  }, [name])
+
+  const handleStartEdit = () => {
+    if (status !== 'active' && onRename) {
+      setIsEditing(true)
+      setEditValue(name)
+    }
+  }
+
+  const handleSave = () => {
+    const trimmedValue = editValue.trim()
+    if (trimmedValue && trimmedValue !== name && onRename) {
+      onRename(trimmedValue)
+    }
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setEditValue(name)
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave()
+    } else if (e.key === 'Escape') {
+      handleCancel()
+    }
+  }
+
   return (
     <div className="h-14 px-4 flex items-center justify-between border-b bg-card">
       {/* Left: Room info */}
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex items-center gap-2">
           <Hash className="h-5 w-5 text-muted-foreground" />
-          <h1 className="font-bold text-lg truncate">{name}</h1>
+          {isEditing ? (
+            <div className="flex items-center gap-1">
+              <Input
+                ref={inputRef}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={handleSave}
+                className="h-7 w-48 text-lg font-bold"
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleSave}
+                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleCancel}
+                className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div
+              className={`flex items-center gap-1 group ${
+                status !== 'active' && onRename ? 'cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1' : ''
+              }`}
+              onClick={handleStartEdit}
+              title={status !== 'active' && onRename ? 'クリックして名前を変更' : undefined}
+            >
+              <h1 className="font-bold text-lg truncate">{name}</h1>
+              {status !== 'active' && onRename && (
+                <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
+            </div>
+          )}
         </div>
 
-        {topic && (
+        {topic && !isEditing && (
           <span className="text-sm text-muted-foreground truncate max-w-[300px] hidden md:inline">
             {topic}
           </span>
@@ -107,10 +198,10 @@ export function RoomHeader({
 
         {/* Control buttons */}
         <div className="flex items-center gap-2">
-          {(status === 'waiting' || status === 'paused') && (
+          {(status === 'waiting' || status === 'paused' || status === 'completed') && (
             <Button size="sm" onClick={onStart} className="gap-1">
               <Play className="h-4 w-4" />
-              {status === 'paused' ? 'Resume' : 'Start'}
+              {status === 'waiting' ? 'Start' : 'Resume'}
             </Button>
           )}
 
@@ -141,6 +232,19 @@ export function RoomHeader({
                 Stop
               </Button>
             </>
+          )}
+
+          {/* Delete button - only show when not active */}
+          {onDelete && status !== 'active' && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onDelete}
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              title="ルームを削除"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           )}
         </div>
       </div>

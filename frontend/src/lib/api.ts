@@ -279,6 +279,12 @@ export const api = {
       method: 'DELETE',
     }),
 
+  updateRoom: (roomId: number, data: { name?: string; topic?: string; max_turns?: number }) =>
+    fetchApi<{ status: string; room_id: number; name: string; topic: string | null; max_turns: number }>(`/rooms/${roomId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
   startRoom: (roomId: number) =>
     fetchApi<{ status: string; websocket_url: string }>(`/rooms/${roomId}/start`, {
       method: 'POST',

@@ -129,6 +129,14 @@ async def room_websocket(websocket: WebSocket, room_id: int):
                     if not get_parallel_orchestrator(room_id):
                         # Refresh room state
                         db.refresh(room)
+
+                        # Handle COMPLETED status: reset to WAITING and extend turns
+                        if room.status == RoomStatus.COMPLETED:
+                            room.status = RoomStatus.WAITING
+                            room.max_turns = room.current_turn + 20
+                            db.commit()
+                            db.refresh(room)
+
                         if room.status in (RoomStatus.WAITING, RoomStatus.PAUSED):
                             discussion_task = asyncio.create_task(
                                 run_discussion_with_broadcast(room_id, db)
@@ -160,6 +168,8 @@ async def room_websocket(websocket: WebSocket, room_id: int):
                     content = message.get("content", "").strip()
                     if content:
                         from .models.database import DiscussionMessage
+                        from .services.mention_parser import find_all_mentioned_participants
+
                         msg = DiscussionMessage(
                             room_id=room_id,
                             participant_id=None,
@@ -171,12 +181,42 @@ async def room_websocket(websocket: WebSocket, room_id: int):
                         db.commit()
                         db.refresh(msg)
 
+                        # Check for @mentions and update orchestrator queue
+                        mentioned_ids = []
+                        orchestrator = get_parallel_orchestrator(room_id)
+                        should_resume = False
+                        if orchestrator and room.participants:
+                            mentioned_ids = find_all_mentioned_participants(
+                                content,
+                                room.participants,
+                                exclude_facilitator=True,
+                            )
+                            if mentioned_ids:
+                                orchestrator._mentioned_speaker_queue = mentioned_ids
+                                logger.info(
+                                    f"Moderator mention detected: next speakers = {mentioned_ids}"
+                                )
+
+                            # Check if we were waiting for moderator input
+                            if orchestrator._waiting_for_moderator:
+                                orchestrator._waiting_for_moderator = False
+                                orchestrator._paused = False
+                                should_resume = True
+                                logger.info("Moderator responded - resuming discussion")
+
                         await broadcast_to_room(room_id, {
                             "type": "moderator_message",
                             "message_id": msg.id,
                             "content": content,
                             "turn_number": msg.turn_number,
+                            "mentioned_participants": mentioned_ids,
                         })
+
+                        # Auto-resume discussion if it was waiting for moderator
+                        if should_resume:
+                            room.status = RoomStatus.WAITING
+                            db.commit()
+                            asyncio.create_task(run_discussion_with_broadcast(room_id))
 
             except asyncio.TimeoutError:
                 # Send ping to keep connection alive
