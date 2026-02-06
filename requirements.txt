@@ -8,7 +8,8 @@ python-dotenv>=1.0.0
 claude-agent-sdk>=0.0.3
 
 # Codex SDK (for Codex agent)
-codex-sdk-py>=0.0.3
+# Pin to 0.0.3 (has PATH fallback; 0.0.4 lacks it)
+codex-sdk-py==0.0.3
 
 # Development
 ruff>=0.8.0

@@ -261,21 +261,29 @@ async def run_codex_agent(
         streamed = await thread.run_streamed(prompt)
 
         full_response = ""
+        event_count = 0
         async for event in streamed.events:
+            event_count += 1
             event_type = event.get("type")
+            # Log all events to stderr for debugging
+            logger.info(f"Event #{event_count}: type={event_type}, data={json.dumps(event, default=str)[:300]}")
             # Emit debug info as JSON to stdout (so orchestrator can see it)
             emit_json({"type": "debug", "event_type": event_type, "event_data": json.dumps(event, default=str)[:500]})
 
             if event_type == "item.completed":
                 item = event.get("item", {})
                 item_type = item.get("type")
+                logger.info(f"item.completed: item_type={item_type}, item_keys={list(item.keys())}")
 
                 if item_type == "agent_message":
                     # agent_message has direct "text" field
                     text = item.get("text", "")
+                    logger.info(f"agent_message: text_length={len(text)}, text_preview={text[:100] if text else '(empty)'}")
                     if text:
                         full_response += text
                         emit_json({"type": "text", "content": text})
+                    else:
+                        logger.warning(f"agent_message has empty text! Full item: {item}")
 
                 elif item_type == "reasoning":
                     # reasoning items have "text" field too, but we skip them for now
@@ -303,9 +311,11 @@ async def run_codex_agent(
             elif event_type == "turn.completed":
                 # Turn completed - extract final response if not already captured
                 turn_response = event.get("final_response", "")
+                logger.info(f"turn.completed: turn_response_length={len(turn_response) if turn_response else 0}, full_response_so_far={len(full_response)}")
                 if turn_response and not full_response:
                     full_response = turn_response
                     emit_json({"type": "text", "content": turn_response})
+                    logger.info(f"Used turn_response as final response")
                 logger.info(f"Turn completed, full_response length: {len(full_response)}")
 
             elif event_type == "turn.failed":
@@ -316,8 +326,13 @@ async def run_codex_agent(
         # If still no response, try to get from streamed.turn
         if not full_response and hasattr(streamed, 'turn') and streamed.turn:
             full_response = getattr(streamed.turn, 'final_response', '') or ''
+            logger.info(f"Fallback: got response from streamed.turn, length={len(full_response)}")
             if full_response:
                 emit_json({"type": "text", "content": full_response})
+
+        # Log final response status
+        logger.info(f"Total events received: {event_count}")
+        logger.info(f"Final response: length={len(full_response)}, preview={full_response[:200] if full_response else '(empty)'}")
 
         # Emit completion
         emit_json({
