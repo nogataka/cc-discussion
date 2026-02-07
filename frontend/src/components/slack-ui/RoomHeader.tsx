@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Hash, Users, Play, Pause, Square, Wifi, WifiOff, Trash2, Pencil, Check, X } from 'lucide-react'
+import { Hash, Users, User, Play, Pause, Square, Wifi, WifiOff, Trash2, Pencil, Check, X } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { ParticipantAvatar } from '../ParticipantAvatar'
@@ -164,10 +164,21 @@ export function RoomHeader({
 
       {/* Right: Participants and controls */}
       <div className="flex items-center gap-4">
-        {/* Participant avatars */}
+        {/* Participant avatars (including moderator) */}
         <div className="flex items-center gap-1">
-          <Users className="h-4 w-4 text-muted-foreground mr-1" />
-          <div className="flex -space-x-2">
+          {/* Moderator avatar (You) */}
+          <div
+            className="rounded-full border-2 border-background"
+            title="モデレーター (あなた)"
+          >
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center text-white"
+              style={{ backgroundColor: '#6366f1' }}
+            >
+              <User className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="flex -space-x-2 ml-1">
             {participants.slice(0, 5).map((p) => (
               <div
                 key={p.id}
@@ -185,6 +196,9 @@ export function RoomHeader({
               </div>
             )}
           </div>
+          <Users className="h-4 w-4 text-muted-foreground ml-2" />
+          <span className="text-sm text-muted-foreground">参加者</span>
+          <span className="text-sm font-medium">{participants.length + 1}</span>
         </div>
 
         {/* Connection status */}

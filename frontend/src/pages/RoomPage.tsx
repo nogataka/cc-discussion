@@ -169,7 +169,7 @@ export function RoomPage() {
     <div className="h-[calc(100vh-73px)] flex overflow-hidden">
       {/* Left Sidebar - Rooms List */}
       <aside className="w-56 bg-slate-800 text-slate-200 flex flex-col flex-shrink-0">
-        <div className="h-12 px-4 flex items-center justify-between border-b border-slate-700">
+        <div className="h-12 px-4 flex items-center border-b border-slate-700">
           <span className="font-bold text-white">ルーム</span>
         </div>
 
@@ -279,7 +279,7 @@ export function RoomPage() {
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-muted-foreground" />
               <span className="font-semibold text-sm">参加者</span>
-              <Badge variant="secondary" className="text-xs">{participants.length}</Badge>
+              <Badge variant="secondary" className="text-xs">{participants.length + 1}</Badge>
             </div>
           </div>
 

@@ -57,6 +57,7 @@ try:
         FACILITATOR_SYSTEM_PROMPT,
         PARTICIPANT_NOMINATION_INSTRUCTION,
     )
+    from .settings import get_tool_permission_mode, ToolPermissionMode
 except ImportError:
     # Running as standalone script - use direct import
     import sys
@@ -68,6 +69,7 @@ except ImportError:
         FACILITATOR_SYSTEM_PROMPT,
         PARTICIPANT_NOMINATION_INSTRUCTION,
     )
+    from settings import get_tool_permission_mode, ToolPermissionMode
 
 # Configure logging to stderr (stdout is reserved for JSON output)
 logging.basicConfig(
@@ -305,13 +307,22 @@ Please analyze the codebase and prepare notes for your upcoming contribution to 
 """
         prompt += f"""Please provide your response to continue the discussion. Remember to start with [{participant_name}]:"""
 
+    # Check tool permission mode
+    permission_mode = get_tool_permission_mode()
+    if permission_mode == ToolPermissionMode.SYSTEM_DEFAULT:
+        allowed_tools = None  # Allow all tools
+        logger.info(f"Using system default mode - all tools allowed")
+    else:
+        allowed_tools = READ_ONLY_TOOLS
+        logger.info(f"Using read-only mode - tools: {READ_ONLY_TOOLS}")
+
     try:
         async with ClaudeSDKClient(
             options=ClaudeAgentOptions(
                 model="claude-sonnet-4-20250514",
                 system_prompt=system_prompt,
                 max_turns=10,  # Allow multiple tool uses within one response
-                allowed_tools=READ_ONLY_TOOLS,
+                allowed_tools=allowed_tools,
                 permission_mode="bypassPermissions",
                 cwd=cwd,
             )

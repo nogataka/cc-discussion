@@ -102,6 +102,28 @@ export const MEETING_TYPES = [
 
 export type AgentType = 'claude' | 'codex'
 
+// ============================================
+// Settings API Types
+// ============================================
+
+export type ToolPermissionMode = 'read_only' | 'system_default'
+
+export interface Settings {
+  tool_permission_mode: ToolPermissionMode
+}
+
+export interface ToolPermissions {
+  current_mode: ToolPermissionMode
+  claude_code: {
+    read_only: string[]
+    system_default: string[]
+  }
+  codex: {
+    read_only: string[]
+    system_default: string[]
+  }
+}
+
 export interface Room {
   id: number
   name: string
@@ -318,5 +340,16 @@ export const api = {
   getAvailableAgents: async (): Promise<AgentType[]> => {
     const data = await fetchApi<{ available_agents: AgentType[] }>('/config/available-agents')
     return data.available_agents || []
+  },
+
+  // Settings endpoints
+  settings: {
+    get: () => fetchApi<Settings>('/settings'),
+    update: (data: Settings) =>
+      fetchApi<Settings>('/settings', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    getToolPermissions: () => fetchApi<ToolPermissions>('/settings/tool-permissions'),
   },
 }

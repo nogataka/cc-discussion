@@ -284,6 +284,20 @@ export function useRoomWebSocket(roomId: number | null) {
     }
   }, [])
 
+  // Reset state when roomId changes
+  useEffect(() => {
+    setState({
+      messages: [],
+      status: 'waiting',
+      currentTurn: 0,
+      maxTurns: 20,
+      isConnected: false,
+      streamingContent: null,
+      preparingParticipants: new Map(),
+      backgroundActivities: [],
+    })
+  }, [roomId])
+
   useEffect(() => {
     if (!roomId) return
 

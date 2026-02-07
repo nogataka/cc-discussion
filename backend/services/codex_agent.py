@@ -212,12 +212,14 @@ async def run_codex_agent(
     # Build meeting type prompt
     meeting_type_prompt = ""
     nomination_instruction = ""
-    # Import meeting_prompts - handle both module and standalone execution
+    # Import meeting_prompts and settings - handle both module and standalone execution
     try:
         from .meeting_prompts import get_meeting_type_prompt, PARTICIPANT_NOMINATION_INSTRUCTION
+        from .settings import get_tool_permission_mode, ToolPermissionMode
     except ImportError:
         sys.path.insert(0, str(Path(__file__).parent))
         from meeting_prompts import get_meeting_type_prompt, PARTICIPANT_NOMINATION_INSTRUCTION
+        from settings import get_tool_permission_mode, ToolPermissionMode
 
     if meeting_type:
         meeting_type_prompt = get_meeting_type_prompt(meeting_type, custom_meeting_description)
@@ -244,9 +246,18 @@ async def run_codex_agent(
         # Create Codex client
         codex = Codex()
 
-        # Start thread with read-only sandbox mode
+        # Check tool permission mode and set sandbox accordingly
+        permission_mode = get_tool_permission_mode()
+        if permission_mode == ToolPermissionMode.SYSTEM_DEFAULT:
+            sandbox_mode = SandboxMode.DANGER_FULL_ACCESS
+            logger.info("Using system default mode - full access sandbox")
+        else:
+            sandbox_mode = SandboxMode.READ_ONLY
+            logger.info("Using read-only mode - read-only sandbox")
+
+        # Start thread with configured sandbox mode
         thread_options = {
-            "sandbox_mode": SandboxMode.READ_ONLY,
+            "sandbox_mode": sandbox_mode,
             "approval_policy": ApprovalMode.NEVER,
             "skip_git_repo_check": True,  # Always skip for discussion mode
         }

@@ -1,6 +1,6 @@
 {
     "name": "cc-discussion",
-    "version": "1.1.2",
+    "version": "1.2.0",
     "description": "Multi-Claude/Codex discussion platform with ClaudeCode context",
     "license": "MIT",
     "author": "nogataka",

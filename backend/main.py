@@ -26,6 +26,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .routers import history_router, rooms_router
+from .routers.settings import router as settings_router
 from .websocket import room_websocket
 from .services.discussion_orchestrator import cleanup_all_orchestrators
 from .models.database import get_engine
@@ -94,6 +95,7 @@ app.add_middleware(
 # Include routers
 app.include_router(history_router)
 app.include_router(rooms_router)
+app.include_router(settings_router)
 
 
 # WebSocket endpoint
